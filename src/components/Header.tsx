@@ -5,19 +5,24 @@ import { useState } from 'react';
 
 interface HeaderProps {
   onSignupClick: () => void;
+  onLoginClick: () => void;
+  user: { email: string; role?: string } | null;
+  onLogout: () => void;
+  onAdminClick: () => void;
+  onDashboardClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSignupClick }) => {
+const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick }) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const tl = gsap.timeline();
-    
-    tl.fromTo(headerRef.current, 
+
+    tl.fromTo(headerRef.current,
       { y: -100, opacity: 0 },
       { y: 0, opacity: 1, duration: 1, ease: "power3.out" }
     )
@@ -76,7 +81,6 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick }) => {
             </div>
           </div>
 
-
           {/* Desktop Navigation */}
           <nav ref={navRef} className="hidden md:flex items-center space-x-8">
             <button 
@@ -97,20 +101,25 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick }) => {
             >
               Contact
             </button>
-
           </nav>
 
-          {/* Sign Up Button */}
-          <button
-            ref={buttonRef}
-            onClick={onSignupClick}
-            className="hidden md:block px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300"
-          >
-            Sign Up
-          </button>
+          {/* Desktop Auth Buttons */}
+          <div ref={buttonRef} className="hidden md:flex space-x-4">
+            <button
+              onClick={onLoginClick}
+              className="px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300"
+            >
+              Login
+            </button>
+            <button
+              onClick={onSignupClick}
+              className="px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300"
+            >
+              Sign Up
+            </button>
+          </div>
 
-
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden text-white hover:text-neon-blue transition-colors duration-300"
@@ -140,6 +149,12 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick }) => {
                 className="text-left text-white hover:text-neon-blue transition-colors duration-300"
               >
                 Contact
+              </button>
+              <button
+                onClick={onLoginClick}
+                className="text-left px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300 w-fit"
+              >
+                Login
               </button>
               <button
                 onClick={onSignupClick}

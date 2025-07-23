@@ -18,29 +18,28 @@ const Hero: React.FC<HeroProps> = ({ onSignupClick }) => {
 
   useEffect(() => {
     const tl = gsap.timeline({ delay: 1 });
-    
-    // Hero entrance animations
+
     tl.fromTo(titleRef.current,
       { y: 100, opacity: 0 },
       { y: 0, opacity: 1, duration: 1.2, ease: "power3.out" }
     )
-    .fromTo(subtitleRef.current,
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, ease: "power2.out" },
-      "-=0.8"
-    )
-    .fromTo(buttonRef.current,
-      { scale: 0, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.7)" },
-      "-=0.5"
-    )
-    .fromTo(logoRef.current,
-      { x: 100, opacity: 0, rotation: 180 },
-      { x: 0, opacity: 1, rotation: 0, duration: 1.5, ease: "power3.out" },
-      "-=1.2"
-    );
+      .fromTo(subtitleRef.current,
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, ease: "power2.out" },
+        "-=0.8"
+      )
+      .fromTo(buttonRef.current,
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.7)" },
+        "-=0.5"
+      )
+      .fromTo(logoRef.current,
+        { x: 100, opacity: 0, rotation: 180 },
+        { x: 0, opacity: 1, rotation: 0, duration: 1.5, ease: "power3.out" },
+        "-=1.2"
+      );
 
-    // Floating animation for logo
+    // Floating animation
     gsap.to(logoRef.current, {
       y: -20,
       duration: 3,
@@ -49,7 +48,7 @@ const Hero: React.FC<HeroProps> = ({ onSignupClick }) => {
       repeat: -1
     });
 
-    // Parallax effect
+    // Parallax ScrollTrigger
     ScrollTrigger.create({
       trigger: heroRef.current,
       start: "top top",
@@ -87,12 +86,12 @@ const Hero: React.FC<HeroProps> = ({ onSignupClick }) => {
   }, []);
 
   return (
-    <section 
+    <section
       id="hero"
       ref={heroRef}
       className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-dark-bg via-gray-900 to-dark-bg"
     >
-      {/* Animated Background Particles */}
+      {/* Particles */}
       <div ref={particlesRef} className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <div
@@ -106,34 +105,28 @@ const Hero: React.FC<HeroProps> = ({ onSignupClick }) => {
         ))}
       </div>
 
-      {/* Gradient Overlay */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-dark-bg/50 to-transparent" />
 
       <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
-        {/* Left Content */}
+        {/* Left Text */}
         <div className="text-center lg:text-left">
-          <h1 
+          <h1
             ref={titleRef}
             className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
           >
-            <span className="text-white">
-              Join us for regular updates on
-            </span>
+            <span className="text-white">Join us for regular updates on</span>
             <br />
-            <span className="text-gray-200">
-              Civil Services Exams
-            </span>
+            <span className="text-gray-200">Civil Services Exams</span>
           </h1>
 
-          
-          <p 
+          <p
             ref={subtitleRef}
             className="text-xl md:text-2xl text-gray-400 mb-8 leading-relaxed"
           >
             Empowering future civil servants with knowledge, guidance, and community support at TKMCE.
           </p>
 
-          
           <button
             ref={buttonRef}
             onClick={onSignupClick}
@@ -141,20 +134,16 @@ const Hero: React.FC<HeroProps> = ({ onSignupClick }) => {
           >
             Get Started Today
           </button>
-
         </div>
 
-        {/* Right Content - Animated Logo */}
+        {/* Right Logo */}
         <div className="flex justify-center lg:justify-end">
-          <div 
-            ref={logoRef}
-            className="relative"
-          >
+          <div ref={logoRef} className="relative">
             <div className="w-80 h-80 bg-gradient-to-br from-neon-blue/20 to-neon-purple/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-neon-blue/30 shadow-glow animate-float">
               <div className="w-64 h-64 bg-gradient-to-br from-neon-blue to-electric-blue rounded-full flex items-center justify-center shadow-neon">
-                <img 
-                  src="/logo.jpg" 
-                  alt="Civil Servants Club Logo" 
+                <img
+                  src="/logo.jpg"
+                  alt="Civil Servants Club Logo"
                   className="w-48 h-48 rounded-full object-cover border-4 border-white/20"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -167,8 +156,8 @@ const Hero: React.FC<HeroProps> = ({ onSignupClick }) => {
                 </div>
               </div>
             </div>
-            
-            {/* Orbiting Elements */}
+
+            {/* Orbiting Dots */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96">
               <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-neon-blue rounded-full animate-spin" style={{ animationDuration: '10s' }} />
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-neon-purple rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }} />

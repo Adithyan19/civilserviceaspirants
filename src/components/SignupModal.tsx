@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import { X, User, Mail, Phone, GraduationCap, Calendar } from 'lucide-react';
+import { X, User, Mail, Phone, GraduationCap, Calendar, Eye, EyeOff, Lock } from 'lucide-react';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -14,10 +14,17 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    pass: '',
     phone: '',
     course: '',
     year: '',
-    interests: ''
+    interests: '',
+    confpass: ''
+  });
+
+  const [showPassword, setShowPassword] = useState({
+    pass: false,
+    confpass: false
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,7 +32,6 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-
       gsap.set(modalRef.current, { display: 'flex' });
       gsap.fromTo(modalRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 });
       gsap.fromTo(contentRef.current, { scale: 0.9, y: 40, opacity: 0 }, {
@@ -38,7 +44,6 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       });
     } else {
       document.body.style.overflow = 'unset';
-
       gsap.to(contentRef.current, {
         scale: 0.9,
         y: 40,
@@ -47,13 +52,12 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         ease: 'power3.in'
       });
       gsap.to(modalRef.current, {
-      opacity: 0,
-      duration: 0.5,
-      onComplete: () => {
-        gsap.to(modalRef.current, { display: 'none' });
-      }
-    });
-
+        opacity: 0,
+        duration: 0.5,
+        onComplete: () => {
+          gsap.set(modalRef.current, { display: 'none' });
+        }
+      });
     }
 
     return () => {
@@ -66,6 +70,10 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const togglePasswordVisibility = (field: 'pass' | 'confpass') => {
+    setShowPassword(prev => ({ ...prev, [field]: !prev[field] }));
+  };
+
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === modalRef.current) onClose();
   };
@@ -74,8 +82,14 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    if (formData.pass !== formData.confpass) {
+      alert('Passwords mismatch');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const response = await fetch('/api/signup', {
+      const response = await fetch('http://localhost:5000/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -94,10 +108,12 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       setFormData({
         fullName: '',
         email: '',
+        pass: '',
         phone: '',
         course: '',
         year: '',
-        interests: ''
+        interests: '',
+        confpass: ''
       });
 
       setTimeout(() => {
@@ -106,6 +122,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       }, 800);
     } catch (error) {
       alert('❌ Something went wrong. Please try again.');
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -122,7 +139,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     >
       <div
         ref={contentRef}
-        className="w-full max-w-2xl bg-glass-bg backdrop-blur-md border border-white/20 rounded-3xl shadow-md overflow-hidden"
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-glass-bg backdrop-blur-md border border-white/20 rounded-3xl shadow-md"
       >
         {/* Header */}
         <div className="relative p-8 bg-gradient-to-r from-white/5 to-white/10 border-b border-white/10">
@@ -144,25 +161,37 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Input Fields */}
             {[
               { name: 'fullName', icon: <User />, type: 'text', placeholder: 'Full Name' },
               { name: 'email', icon: <Mail />, type: 'email', placeholder: 'Email Address' },
+              { name: 'pass', icon: <Lock />, type: 'password', placeholder: 'Create Password' },
+              { name: 'confpass', icon: <Lock />, type: 'password', placeholder: 'Confirm Password' },
               { name: 'phone', icon: <Phone />, type: 'tel', placeholder: 'Phone Number' }
-            ].map(({ name, icon, type, placeholder }) => (
-              <div key={name} className="relative">
-                <div className="absolute top-4 left-4 text-white">{icon}</div>
-                <input
-                  type={type}
-                  name={name}
-                  value={formData[name as keyof typeof formData]}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition"
-                  placeholder={placeholder}
-                />
-              </div>
-            ))}
+            ].map(({ name, icon, type, placeholder }) => {
+              const isPassword = name === 'pass' || name === 'confpass';
+              return (
+                <div key={name} className="relative">
+                  <div className="absolute top-4 left-4 text-white">{icon}</div>
+                  <input
+                    type={isPassword && showPassword[name] ? 'text' : type}
+                    name={name}
+                    value={formData[name as keyof typeof formData] || ''}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full pl-12 pr-12 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition"
+                    placeholder={placeholder}
+                  />
+                  {isPassword && (
+                    <div
+                      className="absolute top-4 right-4 text-white cursor-pointer"
+                      onClick={() => togglePasswordVisibility(name as 'pass' | 'confpass')}
+                    >
+                      {showPassword[name] ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             {/* Course Select */}
             <div className="relative">
@@ -174,11 +203,11 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                 value={formData.course}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition appearance-none"
+                className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition appearance-none"
               >
-                <option value="">Select Course</option>
-                {['Computer Science', 'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Electronics Engineering', 'Other'].map((course) => (
-                  <option key={course} value={course}>{course}</option>
+                <option value="" className="text-black">Select Course</option>
+                {['Computer Science', 'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Electronics Engineering', 'Other'].map(course => (
+                  <option key={course} value={course} className="text-black">{course}</option>
                 ))}
               </select>
             </div>
@@ -193,11 +222,11 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                 value={formData.year}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition appearance-none"
+                className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition appearance-none"
               >
-                <option value="">Select Year</option>
-                {['1st Year', '2nd Year', '3rd Year', '4th Year', 'Alumni'].map((year) => (
-                  <option key={year} value={year}>{year}</option>
+                <option value="" className="text-black">Select Year</option>
+                {['1st Year', '2nd Year', '3rd Year', '4th Year', 'Alumni'].map(year => (
+                  <option key={year} value={year} className="text-black">{year}</option>
                 ))}
               </select>
             </div>
