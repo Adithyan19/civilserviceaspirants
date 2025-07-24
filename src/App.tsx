@@ -41,6 +41,8 @@ const handleLogin = (credentials: { email: string; password: string; role: 'admi
   loginModal.closeModal();
 };
 
+
+
   const handleLogout = () => {
     setUser(null);
     setCurrentView('home');
@@ -55,12 +57,8 @@ const handleLogin = (credentials: { email: string; password: string; role: 'admi
   };
 
   // Admin access (simple check - in real app, this would be role-based)
-  const isAdmin = user?.role === 'admin' || user?.email === 'admin@tkmce.ac.in';
+  const isAdmin = user?.role === 'admin'
 
-  // Route protection
-  if (currentView === 'admin' && !isAdmin) {
-    setCurrentView('dashboard'); // Redirect non-admin users
-  }
 
   if (currentView === 'dashboard' && user) {
     return (
@@ -77,7 +75,7 @@ const handleLogin = (credentials: { email: string; password: string; role: 'admi
     );
   }
 
-  if (currentView === 'admin' && isAdmin) {
+  if (isAdmin) {
     return <AdminPanel />;
   }
 
@@ -89,7 +87,6 @@ const handleLogin = (credentials: { email: string; password: string; role: 'admi
           onLoginClick={loginModal.openModal}
           user={user}
           onLogout={handleLogout}
-          onAdminClick={() => setCurrentView('admin')}
           onDashboardClick={() => setCurrentView('dashboard')}
         />
         <Hero onSignupClick={openModal} />

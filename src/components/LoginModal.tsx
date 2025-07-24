@@ -47,7 +47,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
       const result = await response.json();
       
       if (result.success) {
-        onLogin({ ...formData, role: formData.role });
+        const { email, role, id } = result.user;
+          if (id) {
+    localStorage.setItem("userId", id);
+  } else {
+    console.warn("No user ID found in login response");
+  }
+
+        onLogin({ email, password: formData.password, role });
         setFormData({ email: '', password: '', role: 'user' });
         onClose();
       } else {
@@ -55,10 +62,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
       }
     } catch (error) {
       console.error('Login error:', error);
-      // For demo purposes, allow login anyway
-      onLogin({ ...formData, role: formData.role });
-      setFormData({ email: '', password: '', role: 'user' });
-      onClose();
+      alert('Invalid Credentials');
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +100,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Role Selection */}
             <div className="login-form-field">
-              <label className="block text-sm font-medium text-gray-300 mb-3">Login as:</label>
               <div className="flex space-x-4">
                 <button
                   type="button"
@@ -107,18 +110,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                       : 'bg-white/5 border-white/20 text-gray-400 hover:border-white/40'
                   }`}
                 >
-                  Student/User
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, role: 'admin' }))}
-                  className={`flex-1 py-2 px-4 rounded-lg border transition-all duration-300 ${
-                    formData.role === 'admin'
-                      ? 'bg-neon-purple/20 border-neon-purple text-neon-purple'
-                      : 'bg-white/5 border-white/20 text-gray-400 hover:border-white/40'
-                  }`}
-                >
-                  Admin
+                  Student Login
                 </button>
               </div>
             </div>

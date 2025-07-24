@@ -8,7 +8,6 @@ interface HeaderProps {
   onLoginClick: () => void;
   user: { email: string; role?: string } | null;
   onLogout: () => void;
-  onAdminClick: () => void;
   onDashboardClick: () => void;
 }
 
@@ -101,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick }) => {
             >
               Contact
             </button>
-          </nav>
+          </nav>-
 
           {/* Desktop Auth Buttons */}
           <div ref={buttonRef} className="hidden md:flex space-x-4">

@@ -95,7 +95,8 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Failed to submit');
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error('Signup failed: ' + data.message);
 
       gsap.to(contentRef.current, {
         scale: 1.05,

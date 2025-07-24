@@ -294,7 +294,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-y-auto bg-[#0f172a]">
+    <div data-scroll-container className="bg-[#0f172a]">
+      <div data-scroll-section>
 
       {/* Header */}
       <div className="dashboard-header sticky top-0 z-40 glass-panel border-b border-white/10">
@@ -339,13 +340,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF }) => {
       </div>
 
       {/* Content */}
-      <div className="dashboard-content flex-1 container mx-auto px-6 py-12">
+      <div className="dashboard-content container mx-auto px-6">
         {renderContent()}
       </div>
 
       {/* Footer */}
-      <div className="mt-auto">
+      <div className="mt-12">
         <Footer />
+      </div>
       </div>
     </div>
   );
