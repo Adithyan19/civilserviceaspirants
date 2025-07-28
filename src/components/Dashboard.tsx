@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Footer from './Footer';
+import axios from 'axios';
 import { 
   Calendar, 
   FileText, 
@@ -21,8 +22,42 @@ interface DashboardProps {
   onOpenPDF: (url: string, title: string, type: 'newspaper' | 'question') => void;
 }
 
+interface QuestionPaper {
+  id: string;
+  title: string;
+  subject: string;
+  year: string;
+  url: string;
+}
+
+interface Newspaper {
+  id: string;
+  title: string;
+  date: string;
+  url: string;
+}
+
+interface NewsItem {
+  id: string;
+  category: string;
+  date: string;
+  title: string;
+  url: string; // ✅ new field for external link
+}
+
+
 const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF }) => {
   const [activeSection, setActiveSection] = useState('events');
+  const [questionPapers, setQuestionPapers] = useState<QuestionPaper[]>([]);
+  const [loadingQP, setLoadingQP] = useState(false);
+  const [errorQP, setErrorQP] = useState<string | null>(null);
+  const [newspapers, setNewspapers] = useState<Newspaper[]>([]);
+  const [loadingNP, setLoadingNP] = useState(false);
+  const [errorNP, setErrorNP] = useState<string | null>(null);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [loadingNews, setLoadingNews] = useState(false);
+  const [errorNews, setErrorNews] = useState<string | null>(null);
+
 
   useEffect(() => {
     // Animate dashboard entrance
@@ -58,6 +93,66 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF }) => {
       }
     );
   }, []);
+  
+    useEffect(() => {
+      // Fetch question papers from backend
+      const fetchQuestionPapers = async () => {
+        setLoadingQP(true);
+        setErrorQP(null);
+        try {
+          const res = await axios.get<QuestionPaper[]>('http://localhost:5000/api/sendquestions');
+          setQuestionPapers(res.data);
+        } catch (err) {
+          setErrorQP('Failed to fetch question papers');
+        } finally {
+          setLoadingQP(false);
+        }
+      };
+
+      if (activeSection === 'questions') {
+        fetchQuestionPapers();
+      }
+    }, [activeSection]);
+
+    useEffect(() => {
+  const fetchNewspapers = async () => {
+    setLoadingNP(true);
+    setErrorNP(null);
+    try {
+      const res = await axios.get<Newspaper[]>('http://localhost:5000/api/sendnewspapers');
+      setNewspapers(res.data);
+    } catch (err) {
+      setErrorNP('Failed to fetch newspapers');
+    } finally {
+      setLoadingNP(false);
+    }
+  };
+
+  if (activeSection === 'newspapers') {
+    fetchNewspapers();
+  }
+}, [activeSection]);
+
+
+useEffect(() => {
+  const fetchNews = async () => {
+    setLoadingNews(true);
+    setErrorNews(null);
+    try {
+      const res = await axios.get<NewsItem[]>('http://localhost:5000/api/getnews');
+      setNews(res.data);
+    } catch (err) {
+      setErrorNews('Failed to fetch news');
+    } finally {
+      setLoadingNews(false);
+    }
+  };
+
+  if (activeSection === 'news') {
+    fetchNews();
+  }
+}, [activeSection]);
+
 
   const sections = [
     { id: 'events', label: 'Events', icon: Calendar },
@@ -66,80 +161,35 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF }) => {
     { id: 'news', label: 'News', icon: Globe }
   ];
 
-  const mockEvents = [
-    {
-      id: 1,
-      title: 'UPSC Prelims Mock Test',
-      date: '2024-02-15',
-      time: '10:00 AM',
-      location: 'Main Auditorium',
-      attendees: 150,
-      description: 'Comprehensive mock test covering all subjects for UPSC Prelims preparation.'
-    },
-    {
-      id: 2,
-      title: 'Current Affairs Workshop',
-      date: '2024-02-20',
-      time: '2:00 PM',
-      location: 'Conference Hall',
-      attendees: 80,
-      description: 'Interactive session on recent developments in national and international affairs.'
-    },
-    {
-      id: 3,
-      title: 'Interview Preparation Seminar',
-      date: '2024-02-25',
-      time: '11:00 AM',
-      location: 'Seminar Hall',
-      attendees: 60,
-      description: 'Expert guidance on personality test and interview techniques.'
-    }
-  ];
-
-  const mockQuestionPapers = [
-    {
-      id: 1,
-      title: 'UPSC Prelims 2023',
-      subject: 'General Studies',
-      year: '2023',
-      url: '/pdfs/upsc-prelims-2023.pdf'
-    },
-    {
-      id: 2,
-      title: 'Kerala PSC Degree Level',
-      subject: 'General Knowledge',
-      year: '2023',
-      url: '/pdfs/kerala-psc-degree-2023.pdf'
-    },
-    {
-      id: 3,
-      title: 'SSC CGL Tier 1',
-      subject: 'Quantitative Aptitude',
-      year: '2023',
-      url: '/pdfs/ssc-cgl-tier1-2023.pdf'
-    }
-  ];
-
-  const mockNewspapers = [
-    {
-      id: 1,
-      title: 'The Hindu - Editorial Analysis',
-      date: '2024-01-15',
-      url: '/pdfs/hindu-editorial-jan15.pdf'
-    },
-    {
-      id: 2,
-      title: 'Indian Express - Current Affairs',
-      date: '2024-01-14',
-      url: '/pdfs/indian-express-jan14.pdf'
-    },
-    {
-      id: 3,
-      title: 'Economic Times - Business News',
-      date: '2024-01-13',
-      url: '/pdfs/economic-times-jan13.pdf'
-    }
-  ];
+  // const mockEvents = [
+  //   {
+  //     id: 1,
+  //     title: 'UPSC Prelims Mock Test',
+  //     date: '2024-02-15',
+  //     time: '10:00 AM',
+  //     location: 'Main Auditorium',
+  //     attendees: 150,
+  //     description: 'Comprehensive mock test covering all subjects for UPSC Prelims preparation.'
+  //   },
+  //   {
+  //     id: 2,
+  //     title: 'Current Affairs Workshop',
+  //     date: '2024-02-20',
+  //     time: '2:00 PM',
+  //     location: 'Conference Hall',
+  //     attendees: 80,
+  //     description: 'Interactive session on recent developments in national and international affairs.'
+  //   },
+  //   {
+  //     id: 3,
+  //     title: 'Interview Preparation Seminar',
+  //     date: '2024-02-25',
+  //     time: '11:00 AM',
+  //     location: 'Seminar Hall',
+  //     attendees: 60,
+  //     description: 'Expert guidance on personality test and interview techniques.'
+  //   }
+  // ];
 
   const mockNews = [
     {
@@ -165,44 +215,51 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF }) => {
     }
   ];
 
+
+
+
   const renderContent = () => {
     switch (activeSection) {
       case 'events':
         return (
-          <div className="grid gap-6">
-            {mockEvents.map((event) => (
-              <div key={event.id} className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20">
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white glow-text">{event.title}</h3>
-                  <div className="flex items-center space-x-2 text-neon-blue">
-                    <Users className="w-4 h-4" />
-                    <span className="text-sm">{event.attendees}</span>
-                  </div>
-                </div>
-                <p className="text-gray-300 mb-4">{event.description}</p>
-                <div className="flex items-center space-x-6 text-sm text-gray-400">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>{event.date}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4" />
-                    <span>{event.time}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4" />
-                    <span>{event.location}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          // <div className="grid gap-6">
+          //   {mockEvents.map((event) => (
+          //     <div key={event.id} className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20">
+          //       <div className="flex items-start justify-between mb-4">
+          //         <h3 className="text-xl font-semibold text-white glow-text">{event.title}</h3>
+          //         <div className="flex items-center space-x-2 text-neon-blue">
+          //           <Users className="w-4 h-4" />
+          //           <span className="text-sm">{event.attendees}</span>
+          //         </div>
+          //       </div>
+          //       <p className="text-gray-300 mb-4">{event.description}</p>
+          //       <div className="flex items-center space-x-6 text-sm text-gray-400">
+          //         <div className="flex items-center space-x-2">
+          //           <Calendar className="w-4 h-4" />
+          //           <span>{event.date}</span>
+          //         </div>
+          //         <div className="flex items-center space-x-2">
+          //           <Clock className="w-4 h-4" />
+          //           <span>{event.time}</span>
+          //         </div>
+          //         <div className="flex items-center space-x-2">
+          //           <MapPin className="w-4 h-4" />
+          //           <span>{event.location}</span>
+          //         </div>
+          //       </div>
+          //     </div>
+          //   ))}
+          // </div>
+          <div></div>
         );
 
       case 'questions':
+        if (loadingQP) return <p className="text-gray-400">Loading question papers...</p>;
+        if (errorQP) return <p className="text-red-500">{errorQP}</p>;
+
         return (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockQuestionPapers.map((paper) => (
+            {questionPapers.map((paper) => (
               <div key={paper.id} className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20">
                 <div className="flex items-center mb-4">
                   <FileText className="w-8 h-8 text-neon-blue mr-3" />
@@ -213,20 +270,27 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF }) => {
                 </div>
                 <div className="flex space-x-3">
                   <button
-                    onClick={() => onOpenPDF(paper.url, paper.title, 'question')}
+                    onClick={() => {
+                      console.log("Opening PDF:", paper.url);  // ✅ ADDED
+                      onOpenPDF(paper.url, paper.title, 'question');
+                    }}
                     className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 
-                             bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg 
-                             transition-all duration-300 hover:scale-105"
+                            bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg 
+                            transition-all duration-300 hover:scale-105"
                   >
                     <Eye className="w-4 h-4" />
                     <span>View</span>
                   </button>
-                  <button className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 
-                                   bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg 
-                                   transition-all duration-300 hover:scale-105">
+                  <a
+                    href={paper.url}
+                    download
+                    className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 
+                            bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg 
+                            transition-all duration-300 hover:scale-105"
+                  >
                     <Download className="w-4 h-4" />
                     <span>Download</span>
-                  </button>
+                  </a>
                 </div>
               </div>
             ))}
@@ -234,59 +298,81 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF }) => {
         );
 
       case 'newspapers':
-        return (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockNewspapers.map((newspaper) => (
-              <div key={newspaper.id} className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20">
-                <div className="flex items-center mb-4">
-                  <Newspaper className="w-8 h-8 text-neon-blue mr-3" />
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">{newspaper.title}</h3>
-                    <p className="text-sm text-gray-400">{newspaper.date}</p>
-                  </div>
-                </div>
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => onOpenPDF(newspaper.url, newspaper.title, 'newspaper')}
-                    className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 
-                             bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg 
-                             transition-all duration-300 hover:scale-105"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>Read</span>
-                  </button>
-                  <button className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 
-                                   bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg 
-                                   transition-all duration-300 hover:scale-105">
-                    <Download className="w-4 h-4" />
-                    <span>Download</span>
-                  </button>
+      if (loadingNP) return <p className="text-gray-400">Loading newspapers...</p>;
+      if (errorNP) return <p className="text-red-500">{errorNP}</p>;
+
+      return (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {newspapers.map((paper) => (
+            <div key={paper.id} className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20">
+              <div className="flex items-center mb-4">
+                <Newspaper className="w-8 h-8 text-neon-blue mr-3" />
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{paper.title}</h3>
+                  <p className="text-sm text-gray-400">{paper.date}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        );
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => onOpenPDF(paper.url, paper.title, 'newspaper')}
+                  className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 
+                          bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg 
+                          transition-all duration-300 hover:scale-105"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Read</span>
+                </button>
+                <a
+                  href={paper.url}
+                  download
+                  className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 
+                          bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg 
+                          transition-all duration-300 hover:scale-105"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download</span>
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
 
       case 'news':
-        return (
-          <div className="grid gap-6">
-            {mockNews.map((newsItem) => (
-              <div key={newsItem.id} className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20">
-                <div className="flex items-start justify-between mb-3">
-                  <span className="px-3 py-1 bg-neon-blue/20 text-neon-blue text-xs rounded-full">
-                    {newsItem.category}
-                  </span>
-                  <span className="text-sm text-gray-400">{newsItem.date}</span>
-                </div>
-                <h3 className="text-xl font-semibold text-white glow-text mb-3">{newsItem.title}</h3>
-                <p className="text-gray-300">{newsItem.excerpt}</p>
-                <button className="mt-4 text-neon-blue hover:text-neon-purple transition-colors">
-                  Read More →
-                </button>
+      if (loadingNews) return <p className="text-gray-400">Loading news...</p>;
+      if (errorNews) return <p className="text-red-500">{errorNews}</p>;
+
+      return (
+        <div className="grid gap-6">
+          {news.map((newsItem) => (
+            <div
+              key={newsItem.id}
+              className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <span className="px-3 py-1 bg-neon-blue/20 text-neon-blue text-xs rounded-full">
+                  {newsItem.category}
+                </span>
+                <span className="text-sm text-gray-400">{newsItem.date}</span>
               </div>
-            ))}
-          </div>
-        );
+              <h3 className="text-xl font-semibold text-white glow-text mb-3">
+                {newsItem.title}
+              </h3>
+              <a
+                href={newsItem.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-block text-neon-blue hover:text-neon-purple transition-colors"
+              >
+                Read More →
+              </a>
+            </div>
+          ))}
+        </div>
+      );
+
+
 
       default:
         return null;
