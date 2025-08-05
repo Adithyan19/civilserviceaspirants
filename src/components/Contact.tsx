@@ -228,16 +228,8 @@ const Contact: React.FC = () => {
                 </a>
               ))}
             </div>
-
-            <div className="mt-12 p-6 bg-gray-800 border border-gray-700 rounded-2xl">
-              <h4 className="text-xl font-semibold mb-3 text-white">Office Hours</h4>
-              <div className="space-y-2 text-gray-400">
-                <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
-                <p>Saturday: 10:00 AM - 4:00 PM</p>
-                <p>Sunday: Closed</p>
-              </div>
-            </div>
           </div>
+          
         </div>
       </div>
     </section>

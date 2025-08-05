@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -10,42 +10,46 @@ import LoginModal from './components/LoginModal';
 import Dashboard from './components/Dashboard';
 import AdminPanel from './components/AdminPanel';
 import PDFViewer from './components/PDFViewer';
+import AccountDetails from './components/AccountDetails';
+import Profile from './components/Profile';
 import { useModal } from './hooks/useModal';
-import { initializeAnimations } from './utils/animations';
 import './styles/locomotive.css';
 
-function App() {
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const { isOpen, openModal, closeModal } = useModal();
   const loginModal = useModal();
-  const [user, setUser] = useState<{ email: string; role: 'admin' | 'user' } | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'admin'>('home');
-  const [pdfViewer, setPdfViewer] = useState<{
-    isOpen: boolean;
-    url: string;
-    title: string;
-    type: 'newspaper' | 'question';
-  }>({
+
+  const [user, setUser] = useState<{ email: string; role: 'admin' | 'user'; name: string } | null>(null);
+  const [pdfViewer, setPdfViewer] = useState({
     isOpen: false,
     url: '',
     title: '',
-    type: 'newspaper'
+    type: 'newspaper' as 'newspaper' | 'question',
   });
 
-  useEffect(() => {
-    initializeAnimations();
-  }, []);
+  const isAdmin = user?.role === 'admin';
+  const isHomePage = location.pathname === '/';
+  const isDashboardPage = location.pathname === '/dashboard';
+  const isAdminPage = location.pathname === '/admin';
 
-const handleLogin = (credentials: { email: string; password: string; role: 'admin' | 'user' }) => {
-  setUser({ email: credentials.email, role: credentials.role });
-  setCurrentView(credentials.role === 'admin' ? 'admin' : 'dashboard');
-  loginModal.closeModal();
-};
+  const handleLogin = (credentials: { email: string; password: string; role: 'admin' | 'user'; name: string }) => {
+    setUser({ email: credentials.email, role: credentials.role, name: credentials.name });
+    loginModal.closeModal();
 
-
+    // Navigate based on role
+    if (credentials.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   const handleLogout = () => {
     setUser(null);
-    setCurrentView('home');
+    navigate('/');
   };
 
   const handleOpenPDF = (url: string, title: string, type: 'newspaper' | 'question') => {
@@ -56,51 +60,80 @@ const handleLogin = (credentials: { email: string; password: string; role: 'admi
     setPdfViewer(prev => ({ ...prev, isOpen: false }));
   };
 
-  // Admin access (simple check - in real app, this would be role-based)
-  const isAdmin = user?.role === 'admin'
+  return (
+    <div className="min-h-screen">
+      {/* Home Page Layout */}
+      {isHomePage && (
+        <div className="bg-dark-bg text-white">
+          <Header
+            onSignupClick={openModal}
+            onLoginClick={loginModal.openModal}
+            user={user}
+            onLogout={handleLogout}
+            onDashboardClick={() => navigate('/dashboard')}
+          />
+          <Hero onSignupClick={openModal} />
+          <About />
+          <Contact />
+          <Footer />
+          <SignupModal isOpen={isOpen} onClose={closeModal} />
+          <LoginModal
+            isOpen={loginModal.isOpen}
+            onClose={loginModal.closeModal}
+            onLogin={handleLogin}
+          />
+        </div>
+      )}
 
+      {/* Dashboard Page */}
+      {isDashboardPage && user && (
+        <Dashboard user={user} onOpenPDF={handleOpenPDF} onLogout={handleLogout} />
+      )}
 
-  if (currentView === 'dashboard' && user) {
-    return (
-      <>
-        <Dashboard user={user} onOpenPDF={handleOpenPDF} />
-        <PDFViewer
-          isOpen={pdfViewer.isOpen}
-          onClose={handleClosePDF}
-          pdfUrl={pdfViewer.url}
-          title={pdfViewer.title}
-          type={pdfViewer.type}
-        />
-      </>
-    );
-  }
+      {/* Admin Page */}
+      {isAdminPage && user && isAdmin && (
+        <AdminPanel />
+      )}
 
-  if (isAdmin) {
-    return <AdminPanel />;
-  }
+      {/* Account Details Page Layout */}
+      {location.pathname === '/account' && user && (
+        <AccountDetails user={user} onLogout={handleLogout} />
+      )}
+      {location.pathname === '/account' && !user && <Navigate to="/" replace />}
 
+      {/* Profile Page Layout */}
+      {location.pathname === '/profile' && user && (
+        <Profile user={user} onLogout={handleLogout} onOpenPDF={handleOpenPDF} />
+      )}
+      {location.pathname === '/profile' && !user && <Navigate to="/" replace />}
+
+      {/* Unauthorized Redirects */}
+      {isDashboardPage && !user && <Navigate to="/" replace />}
+      {isAdminPage && (!user || !isAdmin) && <Navigate to={user ? "/dashboard" : "/"} replace />}
+
+      {/* Global PDF Viewer */}
+      <PDFViewer
+        isOpen={pdfViewer.isOpen}
+        onClose={handleClosePDF}
+        pdfUrl={pdfViewer.url}
+        title={pdfViewer.title}
+        type={pdfViewer.type}
+      />
+    </div>
+  );
+};
+
+function App() {
   return (
     <Router>
-      <div className="bg-dark-bg text-white overflow-x-hidden">
-        <Header 
-          onSignupClick={openModal} 
-          onLoginClick={loginModal.openModal}
-          user={user}
-          onLogout={handleLogout}
-          onDashboardClick={() => setCurrentView('dashboard')}
-        />
-        <Hero onSignupClick={openModal} />
-        <About />
-        <Contact />
-        <Footer />
-        <SignupModal isOpen={isOpen} onClose={closeModal} />
-        
-        <LoginModal
-          isOpen={loginModal.isOpen}
-          onClose={loginModal.closeModal}
-          onLogin={handleLogin}
-        />
-      </div>
+      <Routes>
+        <Route path="/" element={<AppContent />} />
+        <Route path="/dashboard" element={<AppContent />} />
+        <Route path="/admin" element={<AppContent />} />
+        <Route path="/account" element={<AppContent />} />
+        <Route path="/profile" element={<AppContent />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Router>
   );
 }

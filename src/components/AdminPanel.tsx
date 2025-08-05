@@ -6,11 +6,11 @@ import {
   Globe, 
   Calendar,
   Plus,
-  Edit,
-  Trash2,
+  // Edit,
+  // Trash2,
   Save
 } from 'lucide-react';
-import { BiCategory } from 'react-icons/bi';
+// import { BiCategory } from 'react-icons/bi';
 
 
 
@@ -122,7 +122,7 @@ const AdminPanel: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    const posted_by = localStorage.getItem('userId');
+    // const posted_by = localStorage.getItem('userId');
 
     try {
       const res = await fetch('http://localhost:5000/api/admin/news', {
@@ -371,9 +371,12 @@ const renderNewsEditor = () => (
             <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={newsCategory}
             onChange={(e) => setNewsCategory(e.target.value)}>
-              <option>UPSC</option>
+              <option>Global</option>
+              <option>India</option>
+              <option>Kerala</option>
+              <option>Placement</option>
               <option>TKMCE</option>
-              <option>General</option>
+              <option>UPSC</option>
             </select>
           </div>
         <div>

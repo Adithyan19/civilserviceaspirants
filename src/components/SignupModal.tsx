@@ -29,9 +29,21 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Store original overflow styles
+  const originalBodyOverflow = useRef<string>('');
+  const originalHtmlOverflow = useRef<string>('');
+
   useEffect(() => {
     if (isOpen) {
+      // Store original overflow styles
+      originalBodyOverflow.current = document.body.style.overflow || '';
+      originalHtmlOverflow.current = document.documentElement.style.overflow || '';
+      
+      // Disable scrolling
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      
+      // Animate modal in
       gsap.set(modalRef.current, { display: 'flex' });
       gsap.fromTo(modalRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 });
       gsap.fromTo(contentRef.current, { scale: 0.9, y: 40, opacity: 0 }, {
@@ -43,7 +55,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         delay: 0.1
       });
     } else {
-      document.body.style.overflow = 'unset';
+      // Animate modal out
       gsap.to(contentRef.current, {
         scale: 0.9,
         y: 40,
@@ -56,14 +68,31 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         duration: 0.5,
         onComplete: () => {
           gsap.set(modalRef.current, { display: 'none' });
+          // Restore original overflow styles
+          document.body.style.overflow = originalBodyOverflow.current;
+          document.documentElement.style.overflow = originalHtmlOverflow.current;
         }
       });
     }
 
+    // Cleanup function to ensure scrolling is restored
     return () => {
-      document.body.style.overflow = 'unset';
+      if (!isOpen) {
+        document.body.style.overflow = originalBodyOverflow.current || 'unset';
+        document.documentElement.style.overflow = originalHtmlOverflow.current || 'unset';
+      }
     };
   }, [isOpen]);
+
+  // Enhanced close function to ensure scroll is restored
+  const handleClose = () => {
+    // Immediately restore scrolling
+    document.body.style.overflow = originalBodyOverflow.current || 'unset';
+    document.documentElement.style.overflow = originalHtmlOverflow.current || 'unset';
+    
+    // Call parent close function
+    onClose();
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -75,7 +104,9 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === modalRef.current) onClose();
+    if (e.target === modalRef.current) {
+      handleClose();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,7 +149,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       });
 
       setTimeout(() => {
-        onClose();
+        handleClose();
         alert('🎉 Registration successful! Welcome to the Civil Servants Club.');
       }, 800);
     } catch (error) {
@@ -129,13 +160,30 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div
       ref={modalRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       style={{ display: 'none' }}
     >
       <div
@@ -145,7 +193,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="relative p-8 bg-gradient-to-r from-white/5 to-white/10 border-b border-white/10">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 w-10 h-10 bg-glass-bg backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:border-white/50 transition"
           >
             <X className="w-5 h-5" />

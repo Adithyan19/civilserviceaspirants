@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { gsap } from 'gsap';
+import { useNavigate, Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
 
 interface HeaderProps {
   onSignupClick: () => void;
@@ -11,7 +11,10 @@ interface HeaderProps {
   onDashboardClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick }) => {
+const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLogout }) => {
+  const navigate = useNavigate();
+
+
   const headerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -43,11 +46,36 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick }) => {
   }, []);
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    // First ensure body is scrollable
+    document.body.style.overflow = 'unset';
+    document.documentElement.style.overflow = 'unset';
+    
+    // Close mobile menu first
     setIsMobileMenuOpen(false);
+    
+    // Add a small delay to ensure DOM is ready
+    setTimeout(() => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        // Get header height to offset scroll position
+        const headerHeight = headerRef.current?.offsetHeight || 80;
+        const elementPosition = element.offsetTop - headerHeight;
+        
+        // Use both methods to ensure compatibility
+        window.scrollTo({
+          top: elementPosition,
+          behavior: 'smooth'
+        });
+        
+        // Fallback method
+        element.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      } else {
+        console.warn(`Element with ID "${sectionId}" not found`);
+      }
+    }, 100);
   };
 
   return (
@@ -84,35 +112,35 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick }) => {
           <nav ref={navRef} className="hidden md:flex items-center space-x-8">
             <button 
               onClick={() => scrollToSection('hero')}
-              className="text-white hover:text-gray-300 transition-colors duration-300"
+              className="text-white hover:text-gray-300 transition-colors duration-300 relative z-10"
             >
               Home
             </button>
             <button 
               onClick={() => scrollToSection('about')}
-              className="text-white hover:text-gray-300 transition-colors duration-300"
+              className="text-white hover:text-gray-300 transition-colors duration-300 relative z-10"
             >
               About
             </button>
             <button 
               onClick={() => scrollToSection('contact')}
-              className="text-white hover:text-gray-300 transition-colors duration-300"
+              className="text-white hover:text-gray-300 transition-colors duration-300 relative z-10"
             >
               Contact
             </button>
-          </nav>-
+          </nav>
 
           {/* Desktop Auth Buttons */}
           <div ref={buttonRef} className="hidden md:flex space-x-4">
             <button
               onClick={onLoginClick}
-              className="px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300"
+              className="px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300 relative z-10"
             >
               Login
             </button>
             <button
               onClick={onSignupClick}
-              className="px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300"
+              className="px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300 relative z-10"
             >
               Sign Up
             </button>
@@ -121,7 +149,7 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick }) => {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-white hover:text-neon-blue transition-colors duration-300"
+            className="md:hidden text-white hover:text-neon-blue transition-colors duration-300 relative z-10"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

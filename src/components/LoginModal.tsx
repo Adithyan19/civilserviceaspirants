@@ -5,15 +5,18 @@ import { gsap } from 'gsap';
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (credentials: { email: string; password: string; role: 'admin' | 'user' }) => void;
+  onLogin: (credentials: { email: string; password: string; role: 'admin' | 'user'; name: string }) => void;
 }
+
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'user' as 'user' | 'admin'
+    role: 'user' as 'user' | 'admin',
+    name: ''
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,15 +50,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
       const result = await response.json();
       
       if (result.success) {
-        const { email, role, id } = result.user;
+        const { email, role, id, name } = result.user;
           if (id) {
     localStorage.setItem("userId", id);
   } else {
     console.warn("No user ID found in login response");
   }
 
-        onLogin({ email, password: formData.password, role });
-        setFormData({ email: '', password: '', role: 'user' });
+        onLogin({ email, password: formData.password, role, name});
+        setFormData({ email: '', password: '', role: 'user', name: '' });
+
         onClose();
       } else {
         alert(result.message || 'Login failed');

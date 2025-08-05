@@ -24,10 +24,12 @@
     "react-dom": "^18.3.1",
     "react-icons": "^5.5.0",
     "react-pdf": "^10.0.1",
-    "react-router-dom": "^7.7.0"
+    "react-router-dom": "^7.7.0",
+    "react-scroll": "^1.9.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@types/locomotive-scroll": "^4.1.4",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
