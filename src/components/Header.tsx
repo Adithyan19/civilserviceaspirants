@@ -7,13 +7,15 @@ interface HeaderProps {
   onSignupClick: () => void;
   onLoginClick: () => void;
   user: { email: string; role?: string } | null;
-  onLogout: () => void;
   onDashboardClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({
+  onSignupClick,
+  onLoginClick,
+  user,
+}) => {
   const navigate = useNavigate();
-
 
   const headerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
@@ -24,35 +26,39 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLo
   useEffect(() => {
     const tl = gsap.timeline();
 
-    tl.fromTo(headerRef.current,
+    tl.fromTo(
+      headerRef.current,
       { y: -100, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, ease: "power3.out" }
+      { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
     )
-    .fromTo(logoRef.current,
-      { x: -50, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.8, ease: "power2.out" },
-      "-=0.5"
-    )
-    .fromTo(navRef.current?.children || [],
-      { y: -20, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out" },
-      "-=0.6"
-    )
-    .fromTo(buttonRef.current,
-      { scale: 0, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" },
-      "-=0.3"
-    );
+      .fromTo(
+        logoRef.current,
+        { x: -50, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.8, ease: 'power2.out' },
+        '-=0.5'
+      )
+      .fromTo(
+        navRef.current?.children || [],
+        { y: -20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power2.out' },
+        '-=0.6'
+      )
+      .fromTo(
+        buttonRef.current,
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' },
+        '-=0.3'
+      );
   }, []);
 
   const scrollToSection = (sectionId: string) => {
     // First ensure body is scrollable
     document.body.style.overflow = 'unset';
     document.documentElement.style.overflow = 'unset';
-    
+
     // Close mobile menu first
     setIsMobileMenuOpen(false);
-    
+
     // Add a small delay to ensure DOM is ready
     setTimeout(() => {
       const element = document.getElementById(sectionId);
@@ -60,17 +66,17 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLo
         // Get header height to offset scroll position
         const headerHeight = headerRef.current?.offsetHeight || 80;
         const elementPosition = element.offsetTop - headerHeight;
-        
+
         // Use both methods to ensure compatibility
         window.scrollTo({
           top: elementPosition,
-          behavior: 'smooth'
-        });
-        
-        // Fallback method
-        element.scrollIntoView({ 
           behavior: 'smooth',
-          block: 'start'
+        });
+
+        // Fallback method
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
         });
       } else {
         console.warn(`Element with ID "${sectionId}" not found`);
@@ -79,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLo
   };
 
   return (
-    <header 
+    <header
       ref={headerRef}
       className="fixed top-0 left-0 right-0 z-50 bg-glass-bg backdrop-blur-md border-b border-white/10"
     >
@@ -88,9 +94,9 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLo
           {/* Logo Section */}
           <div ref={logoRef} className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
-              <img 
-                src="/logo.jpg" 
-                alt="Club Logo" 
+              <img
+                src="/logo.jpg"
+                alt="Club Logo"
                 className="w-8 h-8 rounded-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -109,20 +115,23 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLo
           </div>
 
           {/* Desktop Navigation */}
-          <nav ref={navRef} className="hidden md:flex items-center space-x-8">
-            <button 
+          <nav
+            ref={navRef}
+            className="hidden md:flex items-center space-x-8"
+          >
+            <button
               onClick={() => scrollToSection('hero')}
               className="text-white hover:text-gray-300 transition-colors duration-300 relative z-10"
             >
               Home
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection('about')}
               className="text-white hover:text-gray-300 transition-colors duration-300 relative z-10"
             >
               About
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection('contact')}
               className="text-white hover:text-gray-300 transition-colors duration-300 relative z-10"
             >
@@ -131,7 +140,10 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLo
           </nav>
 
           {/* Desktop Auth Buttons */}
-          <div ref={buttonRef} className="hidden md:flex space-x-4">
+          <div
+            ref={buttonRef}
+            className="hidden md:flex space-x-4"
+          >
             <button
               onClick={onLoginClick}
               className="px-6 py-2 bg-white text-dark-bg font-semibold rounded-full hover:bg-gray-200 transition-all duration-300 relative z-10"
@@ -159,19 +171,19 @@ const Header: React.FC<HeaderProps> = ({ onSignupClick, onLoginClick, user, onLo
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-white/10">
             <nav className="flex flex-col space-y-4 mt-4">
-              <button 
+              <button
                 onClick={() => scrollToSection('hero')}
                 className="text-left text-white hover:text-neon-blue transition-colors duration-300"
               >
                 Home
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('about')}
                 className="text-left text-white hover:text-neon-blue transition-colors duration-300"
               >
                 About
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('contact')}
                 className="text-left text-white hover:text-neon-blue transition-colors duration-300"
               >

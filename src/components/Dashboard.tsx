@@ -462,7 +462,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                     <button
                       onClick={() => {
                         setShowUserDropdown(false);
-                        navigate('/account');
+                        navigate('/account', { state: { email: user?.email } });
                       }}
                       className="w-full px-6 py-3 text-left text-white hover:bg-white/10 
                                flex items-center space-x-3 transition-all duration-300 group"

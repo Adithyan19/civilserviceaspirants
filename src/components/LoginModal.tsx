@@ -3,18 +3,28 @@ import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { gsap } from 'gsap';
 
 interface LoginModalProps {
+  onSignupClick?: () => void;
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (credentials: { email: string; password: string; role: 'admin' | 'user'; name: string }) => void;
+  onLogin: (credentials: {
+    email: string;
+    password: string;
+    role: 'admin' | 'user';
+    name: string;
+  }) => void;
 }
 
-
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => {
+const LoginModal: React.FC<LoginModalProps> = ({
+  onSignupClick,
+  isOpen,
+  onClose,
+  onLogin,
+}) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     role: 'user' as 'user' | 'admin',
-    name: ''
+    name: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -22,11 +32,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
   useEffect(() => {
     if (isOpen) {
-      gsap.fromTo('.login-modal', 
+      gsap.fromTo(
+        '.login-modal',
         { opacity: 0, scale: 0.8 },
         { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(1.7)' }
       );
-      gsap.fromTo('.login-form-field',
+      gsap.fromTo(
+        '.login-form-field',
         { y: 20, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.4, stagger: 0.1, delay: 0.2 }
       );
@@ -36,46 +48,44 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call to backend
       const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         const { email, role, id, name } = result.user;
-          if (id) {
-    localStorage.setItem("userId", id);
-  } else {
-    console.warn("No user ID found in login response");
-  }
+        if (id) {
+          localStorage.setItem('userId', id);
+        } else {
+          console.warn('No user ID found in login response');
+        }
 
-        onLogin({ email, password: formData.password, role, name});
+        onLogin({ email, password: formData.password, role, name });
         setFormData({ email: '', password: '', role: 'user', name: '' });
 
         onClose();
       } else {
-        alert(result.message || 'Login failed');
+        alert(result.error || 'Login failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      alert('Invalid Credentials');
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      alert('❌ Something went wrong. Please try again.\n' + errorMsg);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
@@ -84,14 +94,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-      
+
       <div className="login-modal relative w-full max-w-md">
         <div className="glass-panel p-8 rounded-2xl border border-neon-blue/20">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white glow-text">
-              Welcome Back
-            </h2>
+            <h2 className="text-2xl font-bold text-white glow-text">Welcome Back</h2>
             <button
               onClick={onClose}
               className="p-2 rounded-full hover:bg-white/10 transition-colors"
@@ -107,7 +115,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
               <div className="flex space-x-4">
                 <button
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, role: 'user' }))}
+                  onClick={() => setFormData((prev) => ({ ...prev, role: 'user' }))}
                   className={`flex-1 py-2 px-4 rounded-lg border transition-all duration-300 ${
                     formData.role === 'user'
                       ? 'bg-neon-blue/20 border-neon-blue text-neon-blue'
@@ -129,9 +137,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg 
-                           text-white placeholder-gray-400 focus:border-neon-blue focus:ring-1 
-                           focus:ring-neon-blue focus:outline-none transition-all duration-300
-                           hover:border-white/20"
+                    text-white placeholder-gray-400 focus:border-neon-blue focus:ring-1 
+                    focus:ring-neon-blue focus:outline-none transition-all duration-300
+                    hover:border-white/20"
                   placeholder="Enter your email"
                   required
                 />
@@ -148,9 +156,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                   value={formData.password}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg 
-                           text-white placeholder-gray-400 focus:border-neon-blue focus:ring-1 
-                           focus:ring-neon-blue focus:outline-none transition-all duration-300
-                           hover:border-white/20"
+                    text-white placeholder-gray-400 focus:border-neon-blue focus:ring-1 
+                    focus:ring-neon-blue focus:outline-none transition-all duration-300
+                    hover:border-white/20"
                   placeholder="Enter your password"
                   required
                 />
@@ -158,7 +166,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 
-                           hover:text-white transition-colors"
+                    hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -170,9 +178,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
               type="submit"
               disabled={isLoading}
               className="login-form-field w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple 
-                       text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-neon-blue/25 
-                       transition-all duration-300 transform hover:scale-105 disabled:opacity-50 
-                       disabled:cursor-not-allowed disabled:transform-none"
+                text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-neon-blue/25 
+                transition-all duration-300 transform hover:scale-105 disabled:opacity-50 
+                disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -189,7 +197,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">
               Don't have an account?{' '}
-              <button className="text-neon-blue hover:text-neon-purple transition-colors">
+              <button
+                onClick={onSignupClick}
+                className="text-neon-blue hover:text-neon-purple transition-colors"
+              >
                 Sign up here
               </button>
             </p>

@@ -38,22 +38,26 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       // Store original overflow styles
       originalBodyOverflow.current = document.body.style.overflow || '';
       originalHtmlOverflow.current = document.documentElement.style.overflow || '';
-      
+
       // Disable scrolling
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
-      
+
       // Animate modal in
       gsap.set(modalRef.current, { display: 'flex' });
       gsap.fromTo(modalRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 });
-      gsap.fromTo(contentRef.current, { scale: 0.9, y: 40, opacity: 0 }, {
-        scale: 1,
-        y: 0,
-        opacity: 1,
-        duration: 0.5,
-        ease: 'power3.out',
-        delay: 0.1
-      });
+      gsap.fromTo(
+        contentRef.current,
+        { scale: 0.9, y: 40, opacity: 0 },
+        {
+          scale: 1,
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power3.out',
+          delay: 0.1
+        }
+      );
     } else {
       // Animate modal out
       gsap.to(contentRef.current, {
@@ -89,18 +93,20 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     // Immediately restore scrolling
     document.body.style.overflow = originalBodyOverflow.current || 'unset';
     document.documentElement.style.overflow = originalHtmlOverflow.current || 'unset';
-    
+
     // Call parent close function
     onClose();
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const togglePasswordVisibility = (field: 'pass' | 'confpass') => {
-    setShowPassword(prev => ({ ...prev, [field]: !prev[field] }));
+    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -123,19 +129,25 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       const response = await fetch('http://localhost:5000/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
-      if (!response.ok || !data.success) throw new Error('Signup failed: ' + data.message);
 
-      gsap.to(contentRef.current, {
-        scale: 1.05,
-        duration: 0.2,
-        yoyo: true,
-        repeat: 1,
-        ease: 'power2.inOut'
-      });
+      if (!response.ok || !data.success) {
+        // Use data.error if exists or fallback message
+        throw new Error('Signup failed: ' + (data.error || 'Unknown error'));
+      }
+
+      if (contentRef.current) {
+        gsap.to(contentRef.current, {
+          scale: 1.05,
+          duration: 0.2,
+          yoyo: true,
+          repeat: 1,
+          ease: 'power2.inOut'
+        });
+      }
 
       setFormData({
         fullName: '',
@@ -153,7 +165,8 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         alert('🎉 Registration successful! Welcome to the Civil Servants Club.');
       }, 800);
     } catch (error) {
-      alert('❌ Something went wrong. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      alert('❌ Something went wrong. Please try again. \n' + errorMsg);
       console.error(error);
     } finally {
       setIsSubmitting(false);

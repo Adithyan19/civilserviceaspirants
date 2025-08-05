@@ -1,5 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -22,7 +29,9 @@ const AppContent: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
   const loginModal = useModal();
 
-  const [user, setUser] = useState<{ email: string; role: 'admin' | 'user'; name: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; role: 'admin' | 'user'; name: string } | null>(
+    null
+  );
   const [pdfViewer, setPdfViewer] = useState({
     isOpen: false,
     url: '',
@@ -35,7 +44,12 @@ const AppContent: React.FC = () => {
   const isDashboardPage = location.pathname === '/dashboard';
   const isAdminPage = location.pathname === '/admin';
 
-  const handleLogin = (credentials: { email: string; password: string; role: 'admin' | 'user'; name: string }) => {
+  const handleLogin = (credentials: {
+    email: string;
+    password: string;
+    role: 'admin' | 'user';
+    name: string;
+  }) => {
     setUser({ email: credentials.email, role: credentials.role, name: credentials.name });
     loginModal.closeModal();
 
@@ -57,7 +71,7 @@ const AppContent: React.FC = () => {
   };
 
   const handleClosePDF = () => {
-    setPdfViewer(prev => ({ ...prev, isOpen: false }));
+    setPdfViewer((prev) => ({ ...prev, isOpen: false }));
   };
 
   return (
@@ -69,7 +83,6 @@ const AppContent: React.FC = () => {
             onSignupClick={openModal}
             onLoginClick={loginModal.openModal}
             user={user}
-            onLogout={handleLogout}
             onDashboardClick={() => navigate('/dashboard')}
           />
           <Hero onSignupClick={openModal} />
@@ -78,6 +91,7 @@ const AppContent: React.FC = () => {
           <Footer />
           <SignupModal isOpen={isOpen} onClose={closeModal} />
           <LoginModal
+            onSignupClick={openModal}
             isOpen={loginModal.isOpen}
             onClose={loginModal.closeModal}
             onLogin={handleLogin}
@@ -91,9 +105,7 @@ const AppContent: React.FC = () => {
       )}
 
       {/* Admin Page */}
-      {isAdminPage && user && isAdmin && (
-        <AdminPanel />
-      )}
+      {isAdminPage && user && isAdmin && <AdminPanel />}
 
       {/* Account Details Page Layout */}
       {location.pathname === '/account' && user && (
@@ -109,7 +121,9 @@ const AppContent: React.FC = () => {
 
       {/* Unauthorized Redirects */}
       {isDashboardPage && !user && <Navigate to="/" replace />}
-      {isAdminPage && (!user || !isAdmin) && <Navigate to={user ? "/dashboard" : "/"} replace />}
+      {isAdminPage && (!user || !isAdmin) && (
+        <Navigate to={user ? '/dashboard' : '/'} replace />
+      )}
 
       {/* Global PDF Viewer */}
       <PDFViewer
