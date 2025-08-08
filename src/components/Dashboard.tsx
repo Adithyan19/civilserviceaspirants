@@ -49,6 +49,21 @@ interface NewsItem {
   posted_at: string;
 }
 
+interface EventItem {
+  id: string;
+  title: string;
+  description: string;
+  max_participants: number;
+  venue: string;
+  mode: string;
+  date: string;
+  time: string;
+  img_url: string;
+  organizer_contact_1: string;
+  organizer_contact_2: string;
+}
+
+
 const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [activeSection, setActiveSection] = useState('events');
   const navigate = useNavigate();
@@ -64,6 +79,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loadingNews, setLoadingNews] = useState(false);
   const [errorNews, setErrorNews] = useState<string | null>(null);
+
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [errorEvents, setErrorEvents] = useState<string | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<string>('TKMCE');
   const categories = ['Global', 'India', 'Kerala', 'TKMCE', 'Placement', 'UPSC'];
@@ -137,64 +156,73 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     navigate('/');
   };
 
-
+  useEffect(() => {
+    if (activeSection === "events") {
+      (async () => {
+        setLoadingEvents(true);
+        setErrorEvents(null);
+        try {
+          const res = await axios.get<EventItem[]>(
+            "http://localhost:5000/api/getevents"
+          );
+          setEvents(res.data);
+        } catch {
+          setErrorEvents("Failed to fetch events");
+        } finally {
+          setLoadingEvents(false);
+        }
+      })();
+    }
+  }, [activeSection]);
   // Fetch question papers
-  useEffect(() => {
-    const fetchQuestionPapers = async () => {
-      setLoadingQP(true);
-      setErrorQP(null);
-      try {
-        const res = await axios.get<QuestionPaper[]>('http://localhost:5000/api/sendquestions');
-        setQuestionPapers(res.data);
-      } catch {
-        setErrorQP('Failed to fetch question papers');
-      } finally {
-        setLoadingQP(false);
-      }
-    };
-
+    useEffect(() => {
     if (activeSection === 'questions') {
-      fetchQuestionPapers();
+      (async () => {
+        setLoadingQP(true);
+        setErrorQP(null);
+        try {
+          const res = await axios.get<QuestionPaper[]>('http://localhost:5000/api/sendquestions');
+          setQuestionPapers(res.data);
+        } catch {
+          setErrorQP('Failed to fetch question papers');
+        } finally {
+          setLoadingQP(false);
+        }
+      })();
     }
   }, [activeSection]);
 
-  // Fetch newspapers
   useEffect(() => {
-    const fetchNewspapers = async () => {
-      setLoadingNP(true);
-      setErrorNP(null);
-      try {
-        const res = await axios.get<Newspaper[]>('http://localhost:5000/api/sendnewspapers');
-        setNewspapers(res.data);
-      } catch {
-        setErrorNP('Failed to fetch newspapers');
-      } finally {
-        setLoadingNP(false);
-      }
-    };
-
     if (activeSection === 'newspapers') {
-      fetchNewspapers();
+      (async () => {
+        setLoadingNP(true);
+        setErrorNP(null);
+        try {
+          const res = await axios.get<Newspaper[]>('http://localhost:5000/api/sendnewspapers');
+          setNewspapers(res.data);
+        } catch {
+          setErrorNP('Failed to fetch newspapers');
+        } finally {
+          setLoadingNP(false);
+        }
+      })();
     }
   }, [activeSection]);
 
-  // Fetch news
   useEffect(() => {
-    const fetchNews = async () => {
-      setLoadingNews(true);
-      setErrorNews(null);
-      try {
-        const res = await axios.get<NewsItem[]>('http://localhost:5000/api/getnews');
-        setNews(res.data);
-      } catch {
-        setErrorNews('Failed to fetch news');
-      } finally {
-        setLoadingNews(false);
-      }
-    };
-
     if (activeSection === 'news') {
-      fetchNews();
+      (async () => {
+        setLoadingNews(true);
+        setErrorNews(null);
+        try {
+          const res = await axios.get<NewsItem[]>('http://localhost:5000/api/getnews');
+          setNews(res.data);
+        } catch {
+          setErrorNews('Failed to fetch news');
+        } finally {
+          setLoadingNews(false);
+        }
+      })();
     }
   }, [activeSection]);
 
@@ -207,21 +235,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [news, activeSection]);
 
-  // Placeholder handlers for dropdown menu items
-  // const handleAccountDetails = () => {
-  //   setShowUserDropdown(false);
-  //   alert('Account details feature coming soon!');
-  // };
-  // const handleProfile = () => {
-  //   setShowUserDropdown(false);
-  //   alert('Profile settings feature coming soon!');
-  // };
-  // const handleUpdatePassword = () => {
-  //   setShowUserDropdown(false);
-  //   alert('Update password feature coming soon!');
-  // };
-
-
   const sections = [
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'questions', label: 'Question Papers', icon: FileText },
@@ -231,8 +244,100 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
   const renderContent = () => {
     switch (activeSection) {
-      case 'events':
-        return <div></div>;
+      case "events":
+  if (loadingEvents) return <p className="text-gray-400">Loading events...</p>;
+  if (errorEvents) return <p className="text-red-500">{errorEvents}</p>;
+  return (
+    <div className="grid gap-8 justify-items-center">
+      {events.map((event) => (
+        <div
+          key={event.id}
+          className="bg-gradient-to-br from-gray-800 to-gray-900/80 rounded-2xl shadow-xl border border-white/10 overflow-hidden w-[90%] md:w-[60%] lg:w-[40%] transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:border-neon-blue/30"
+        >
+          {/* Event image */}
+          <img
+            src={event.img_url}
+            alt={event.title}
+            className="w-full h-56 object-cover"
+          />
+          
+          {/* Card content */}
+          <div className="p-6 flex flex-col gap-5 text-white">
+            {/* Title */}
+            <h3 className="text-2xl font-bold text-center text-white">
+              {event.title}
+            </h3>
+            
+            {/* Description */}
+            <p className="text-gray-300 text-sm text-center leading-relaxed">
+              {event.description.length > 150
+                ? event.description.substring(0, 150) + "..."
+                : event.description}
+            </p>
+            
+            {/* Event info section */}
+            <div className="grid grid-cols-2 gap-6 text-sm">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-neon-blue text-lg">📅</span>
+                  <div>
+                    <span className="text-white font-bold">Date: </span>
+                    <span className="text-gray-300 font-medium">
+                      {new Date(event.date).toLocaleDateString('en-US', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-neon-purple text-lg">🕒</span>
+                  <div>
+                    <span className="text-white font-bold">Time: </span>
+                    <span className="text-gray-300 font-medium">{event.time}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-orange-400 text-lg">📺</span>
+                  <div>
+                    <span className="text-white font-bold">Mode: </span>
+                    <span className="text-gray-300 font-medium">{event.mode}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400 text-lg">📍</span>
+                  <div>
+                    <span className="text-white font-bold">Venue: </span>
+                    <span className="text-gray-300 font-medium">{event.venue}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer - slots + button */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400 text-sm">
+                🎟 Max: <span className="text-white font-semibold">{event.max_participants}</span>
+              </span>
+              <button
+                onClick={() => navigate(`/event/${event.id}`)}
+                className="bg-neon-blue hover:bg-neon-blue/80 px-6 py-2 rounded-lg text-sm text-white font-semibold transition-all duration-300"
+              >
+                Enroll
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+
+
 
       case 'questions':
         if (loadingQP) return <p className="text-gray-400">Loading question papers...</p>;
@@ -394,117 +499,102 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
   return (
     <div className="bg-[#0f172a] min-h-screen">
-      {/* Header */}
-      <div className="dashboard-header sticky top-0 z-40 glass-panel border-b border-white/10">
+      {/* Header - sticky removed */}
+      <div className="dashboard-header relative z-40 glass-panel border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-
-            {/* Left side - Dashboard title */}
             <div>
-              <button 
-                className="text-2xl font-bold text-white glow-text hover:text-neon-blue transition-colors cursor-pointer flex items-center space-x-2"
-              >
+              <button className="text-2xl font-bold text-white glow-text hover:text-neon-blue transition-colors cursor-pointer flex items-center space-x-2">
                 <span>Dashboard</span>
               </button>
               <p className="text-gray-400">Welcome back, {user?.name}</p>
             </div>
 
-            {/* Right side - User avatar button + dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowUserDropdown((show) => !show)}
                 aria-haspopup="true"
                 aria-expanded={showUserDropdown}
-                className="
-                  flex items-center space-x-2 px-3 py-2 bg-glass-bg backdrop-blur-sm
+                className="flex items-center space-x-2 px-3 py-2 bg-glass-bg backdrop-blur-sm
                   border border-white/20 rounded-full hover:border-neon-blue/50
-                  hover:shadow-glow transition-all duration-300 group focus:outline-none
-                  focus:ring-2 focus:ring-neon-blue/50
-                "
+                  hover:shadow-glow transition-all duration-300 group"
               >
-                <div
-                  className="
-                    w-8 h-8 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full
-                    flex items-center justify-center text-white font-semibold text-sm
-                    group-hover:scale-110 transition-transform duration-300
-                  "
-                >
+                <div className="w-8 h-8 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full
+                                flex items-center justify-center text-white font-semibold text-sm">
                   {user?.name.charAt(0).toUpperCase()}
                 </div>
-                <ChevronDown className="w-4 h-4 text-white group-hover:text-neon-blue transition-colors" />
+                <ChevronDown className="w-4 h-4 text-white group-hover:text-neon-blue" />
               </button>
 
-              {/* Dropdown Menu */}
               {showUserDropdown && (
-                <div className="absolute right-0 mt-2 w-80 bg-gray-900/95 backdrop-blur-md 
-                              border border-white/20 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                  {/* Profile Header */}
-                  <div className="bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 px-6 py-4 border-b border-white/10">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full 
-                                    flex items-center justify-center text-white font-bold text-lg">
-                        {user?.email.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="text-white font-semibold">
-                          {user?.name}
-                        </h3>
-                        <p className="text-gray-400 text-sm">{user?.email}</p>
-                        <span className="inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 bg-neon-blue/20 text-neon-blue">
-                          Student
-                        </span>
+                <>
+                  {/* Overlay to block content interaction */}
+                  <div
+                    className="fixed inset-0 z-[999]"
+                    onClick={() => setShowUserDropdown(false)}
+                  />
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 mt-2 w-80 bg-gray-900/95 backdrop-blur-md 
+                                  border border-white/20 rounded-2xl shadow-2xl z-[1000] overflow-hidden">
+                    <div className="bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 px-6 py-4 border-b border-white/10">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full 
+                                      flex items-center justify-center text-white font-bold text-lg">
+                          {user?.email.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold">{user?.name}</h3>
+                          <p className="text-gray-400 text-sm">{user?.email}</p>
+                          <span className="inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 bg-neon-blue/20 text-neon-blue">
+                            Student
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          navigate('/account', { state: { email: user?.email } });
+                        }}
+                        className="w-full px-6 py-3 text-left text-white hover:bg-white/10 
+                                 flex items-center space-x-3 transition-all duration-300 group"
+                      >
+                        <User className="w-5 h-5 text-neon-blue" />
+                        <div>
+                          <p className="font-medium">Account Details</p>
+                          <p className="text-xs text-gray-400">View and manage your profile</p>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          navigate('/profile');
+                        }}
+                        className="w-full px-6 py-3 text-left text-white hover:bg-white/10 
+                                 flex items-center space-x-3 transition-all duration-300 group"
+                      >
+                        <Settings className="w-5 h-5 text-neon-purple" />
+                        <div>
+                          <p className="font-medium">Profile</p>
+                          <p className="text-xs text-gray-400">Manage your preferences</p>
+                        </div>
+                      </button>
+                      <div className="border-t border-white/10 my-2"></div>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full px-6 py-3 text-left text-red-400 hover:bg-red-500/10 
+                                 flex items-center space-x-3 transition-all duration-300 group"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        <div>
+                          <p className="font-medium">Sign Out</p>
+                          <p className="text-xs text-red-300">Logout from your account</p>
+                        </div>
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Menu Items */}
-                  <div className="py-2">
-                    <button
-                      onClick={() => {
-                        setShowUserDropdown(false);
-                        navigate('/account', { state: { email: user?.email } });
-                      }}
-                      className="w-full px-6 py-3 text-left text-white hover:bg-white/10 
-                               flex items-center space-x-3 transition-all duration-300 group"
-                    >
-                      <User className="w-5 h-5 text-neon-blue group-hover:scale-110 transition-transform" />
-                      <div>
-                        <p className="font-medium">Account Details</p>
-                        <p className="text-xs text-gray-400">View and manage your profile</p>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setShowUserDropdown(false);
-                        navigate('/profile');
-                      }}
-                      className="w-full px-6 py-3 text-left text-white hover:bg-white/10 
-                               flex items-center space-x-3 transition-all duration-300 group"
-                    >
-                      <Settings className="w-5 h-5 text-neon-purple group-hover:scale-110 transition-transform" />
-                      <div>
-                        <p className="font-medium">Profile</p>
-                        <p className="text-xs text-gray-400">Manage your preferences</p>
-                      </div>
-                    </button>
-
-                    
-                    <div className="border-t border-white/10 my-2"></div>
-
-                    <button
-                      onClick={handleLogout}
-                      className="w-full px-6 py-3 text-left text-red-400 hover:bg-red-500/10 
-                               flex items-center space-x-3 transition-all duration-300 group"
-                    >
-                      <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                      <div>
-                        <p className="font-medium">Sign Out</p>
-                        <p className="text-xs text-red-300">Logout from your account</p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
+                </>
               )}
             </div>
           </div>
@@ -540,7 +630,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         {renderContent()}
       </div>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

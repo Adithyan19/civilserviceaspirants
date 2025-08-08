@@ -1,25 +1,21 @@
 import React, { useState } from 'react';
-import { 
-  Upload, 
-  FileText, 
-  Newspaper, 
-  Globe, 
+import {
+  Upload,
+  FileText,
+  Newspaper,
+  Globe,
   Calendar,
-  Plus,
-  // Edit,
-  // Trash2,
-  Save
+  Clock,
+  Phone,
+  MapPin,
+  Save,
 } from 'lucide-react';
-// import { BiCategory } from 'react-icons/bi';
-
-
 
 const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('newspapers');
   const [isUploading, setIsUploading] = useState(false);
 
-
-  // At the top of AdminPanel component
+  // Newspaper
   const [newspaperTitle, setNewspaperTitle] = useState('');
   const [newspaperDate, setNewspaperDate] = useState('');
   const [newspaperFile, setNewspaperFile] = useState<File | null>(null);
@@ -30,78 +26,88 @@ const AdminPanel: React.FC = () => {
   const [examYear, setExamYear] = useState('');
   const [examCategory, setExamCategory] = useState('');
   const [questionPaperFile, setQuestionPaperFile] = useState<File | null>(null);
-  // 
+
+  // News
   const [newsTitle, setNewsTitle] = useState('');
   const [newsUrl, setNewsUrl] = useState('');
-  const [newsCategory, setNewsCategory] = useState('General'); // Optional if you're using category
+  const [newsCategory, setNewsCategory] = useState('General');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Event (added date field)
+  const [eventForm, setEventForm] = useState({
+    coverPhoto: '',
+    name: '',
+    description: '',
+    participantLimit: '',
+    venue: '',
+    mode: 'offline',
+    organizerContact1: '',
+    organizerContact2: '',
+    time: '',
+    date: '',
+  });
+  const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
+  const [isEventUploading, setIsEventUploading] = useState(false);
 
   const tabs = [
     { id: 'newspapers', label: 'Newspapers', icon: Newspaper },
     { id: 'questions', label: 'Question Papers', icon: FileText },
     { id: 'news', label: 'News Posts', icon: Globe },
-    { id: 'events', label: 'Events', icon: Calendar }
+    { id: 'events', label: 'Events', icon: Calendar },
   ];
 
+  // ---- Newspaper save handler ----
   const handleNewspaperSave = async () => {
     if (!newspaperTitle || !newspaperDate || !newspaperFile) {
-      alert("Please fill all fields and upload a PDF.");
+      alert('Please fill all fields and upload a PDF.');
       return;
     }
-
     setIsUploading(true);
     const formData = new FormData();
     formData.append('title', newspaperTitle);
     formData.append('date', newspaperDate);
     formData.append('pdf', newspaperFile);
     formData.append('type_id', '2');
-    formData.append('uploaded_by', '1'); // Replace '1' with actual admin id
-
+    formData.append('uploaded_by', '1'); // Replace as needed
     try {
-      const res = await fetch('http://localhost:5000/api/admin/newspapers', { // Adjust base URL as needed
+      const res = await fetch('http://localhost:5000/api/admin/newspapers', {
         method: 'POST',
         body: formData,
       });
       if (!res.ok) throw new Error('Upload failed');
-
       alert('Newspaper saved successfully!');
       setNewspaperTitle('');
       setNewspaperDate('');
       setNewspaperFile(null);
     } catch (error) {
-      alert('Error uploading newspaper: ' + (error instanceof Error ? error.message : String(error)));
+      alert(
+        'Error uploading newspaper: ' +
+          (error instanceof Error ? error.message : String(error))
+      );
     } finally {
       setIsUploading(false);
     }
   };
 
+  // ---- Question paper save handler ----
   const handleQuestionPaperSave = async () => {
     if (!examTitle || !examYear || !questionPaperFile) {
-      alert("Please fill all fields and upload a PDF.");
+      alert('Please fill all fields and upload a PDF.');
       return;
     }
-
-    const userId = localStorage.getItem("userId"); // get actual user id
-    console.log("Current logged-in user ID:", userId);
-
     setIsUploading(true);
-
     const formData = new FormData();
     formData.append('title', examTitle);
     formData.append('date', examYear);
     formData.append('pdf', questionPaperFile);
-    formData.append('type_id', '1'); // 1 for question papers
-    formData.append('uploaded_by','1'); // fallback if null
-
+    formData.append('type_id', '1');
+    formData.append('uploaded_by', '1');
     try {
       const res = await fetch('http://localhost:5000/api/admin/questionpapers', {
         method: 'POST',
         body: formData,
       });
-
       if (!res.ok) throw new Error('Upload failed');
-
       alert('Question paper saved successfully!');
       setExamTitle('');
       setExamYear('');
@@ -109,21 +115,22 @@ const AdminPanel: React.FC = () => {
       setExamSubject('');
       setQuestionPaperFile(null);
     } catch (error) {
-      alert('Error uploading question paper: ' + (error instanceof Error ? error.message : String(error)));
+      alert(
+        'Error uploading question paper: ' +
+          (error instanceof Error ? error.message : String(error))
+      );
     } finally {
       setIsUploading(false);
     }
   };
 
+  // ---- News submit handler ----
   const handleNewsSubmit = async () => {
-    if (!newsTitle || !newsUrl ||!newsCategory) {
+    if (!newsTitle || !newsUrl || !newsCategory) {
       alert('Please enter both title and link.');
       return;
     }
-
     setIsSubmitting(true);
-    // const posted_by = localStorage.getItem('userId');
-
     try {
       const res = await fetch('http://localhost:5000/api/admin/news', {
         method: 'POST',
@@ -133,13 +140,11 @@ const AdminPanel: React.FC = () => {
         body: JSON.stringify({
           title: newsTitle,
           url: newsUrl,
-          category:newsCategory,
+          category: newsCategory,
           posted_by: '1',
         }),
       });
-
       if (!res.ok) throw new Error('Failed to publish news');
-
       alert('News published successfully!');
       setNewsTitle('');
       setNewsUrl('');
@@ -150,11 +155,89 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  // ---- Event input change handler ----
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setEventForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // ---- Event submit handler with date field ----
+  const handleEventSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (
+      !eventForm.name ||
+      !eventForm.description ||
+      !eventForm.participantLimit ||
+      !eventForm.venue ||
+      !eventForm.organizerContact1 ||
+      !eventForm.organizerContact2 ||
+      !eventForm.date
+    ) {
+      alert('Please fill all required fields including date.');
+      return;
+    }
+
+    setIsEventUploading(true);
+    const formData = new FormData();
+
+    if (coverPhotoFile) {
+      formData.append('coverPhoto', coverPhotoFile);
+    } else if (eventForm.coverPhoto) {
+      formData.append('coverPhotoUrl', eventForm.coverPhoto);
+    }
+
+    formData.append('name', eventForm.name);
+    formData.append('description', eventForm.description);
+    formData.append('participantLimit', eventForm.participantLimit);
+    formData.append('venue', eventForm.venue);
+    formData.append('mode', eventForm.mode);
+    formData.append('organizerContact1', eventForm.organizerContact1);
+    formData.append('organizerContact2', eventForm.organizerContact2);
+    formData.append('time', eventForm.time);
+    formData.append('date', eventForm.date);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/events', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Failed to create event');
+      alert('Event created successfully!');
+      setEventForm({
+        coverPhoto: '',
+        name: '',
+        description: '',
+        participantLimit: '',
+        venue: '',
+        mode: 'offline',
+        organizerContact1: '',
+        organizerContact2: '',
+        time: '',
+        date: '',
+      });
+      setCoverPhotoFile(null);
+    } catch (err) {
+      alert('Error creating event: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsEventUploading(false);
+    }
+  };
+
+  // ---- Render functions for each tab ----
 
   const renderNewspaperUpload = () => (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Upload Newspaper</h3>
-      
+      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        Upload Newspaper
+      </h3>
       <div className="grid md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -168,7 +251,6 @@ const AdminPanel: React.FC = () => {
             placeholder="e.g., The Hindu - Editorial Analysis"
           />
         </div>
-        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Date
@@ -181,7 +263,6 @@ const AdminPanel: React.FC = () => {
           />
         </div>
       </div>
-
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Upload PDF
@@ -193,26 +274,29 @@ const AdminPanel: React.FC = () => {
               <span className="mt-2 block text-sm font-medium text-gray-900">
                 Drop files here or click to upload
               </span>
-                <input
-                  id="newspaper-upload"
-                  type="file"
-                  accept=".pdf"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setNewspaperFile(file);
-                  }}
-                />
+              <input
+                id="newspaper-upload"
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setNewspaperFile(file);
+                }}
+              />
             </label>
+            {newspaperFile && (
+              <span className="block text-xs mt-2 text-gray-500">
+                Selected: {newspaperFile.name}
+              </span>
+            )}
           </div>
         </div>
       </div>
-
       <button
         disabled={isUploading}
         onClick={handleNewspaperSave}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 
-                disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
       >
         {isUploading ? (
           <>
@@ -226,14 +310,14 @@ const AdminPanel: React.FC = () => {
           </>
         )}
       </button>
-
     </div>
   );
 
   const renderQuestionPaperUpload = () => (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Upload Question Paper</h3>
-
+      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        Upload Question Paper
+      </h3>
       <div className="grid md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -247,7 +331,6 @@ const AdminPanel: React.FC = () => {
             placeholder="e.g., UPSC Prelims 2023"
           />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Subject
@@ -261,7 +344,6 @@ const AdminPanel: React.FC = () => {
           />
         </div>
       </div>
-
       <div className="grid md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -274,7 +356,6 @@ const AdminPanel: React.FC = () => {
             onChange={(e) => setExamYear(e.target.value)}
           />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Category
@@ -293,7 +374,6 @@ const AdminPanel: React.FC = () => {
           </select>
         </div>
       </div>
-
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Upload PDF
@@ -316,15 +396,18 @@ const AdminPanel: React.FC = () => {
                 }}
               />
             </label>
+            {questionPaperFile && (
+              <span className="block text-xs mt-2 text-gray-500">
+                Selected: {questionPaperFile.name}
+              </span>
+            )}
           </div>
         </div>
       </div>
-
       <button
         disabled={isUploading}
         onClick={handleQuestionPaperSave}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 
-          disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
       >
         {isUploading ? (
           <>
@@ -341,36 +424,36 @@ const AdminPanel: React.FC = () => {
     </div>
   );
 
-
-const renderNewsEditor = () => (
-  <div className="space-y-6">
-    <div className="flex items-center justify-between">
-      <h3 className="text-xl font-semibold text-gray-800">Manage News Posts</h3>
-      {/* <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center space-x-2">
-        <Plus className="w-4 h-4" />
-        <span>Add News</span>
-      </button> */}
-    </div>
-
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">News Link</label>
-          <input
-            type="text"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://example.com/news/article"
-            value={newsUrl}
-            onChange={(e) => setNewsUrl(e.target.value)}
-          />
-        </div>
-        <div>
+  const renderNewsEditor = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-semibold text-gray-800">
+          Manage News Posts
+        </h3>
+      </div>
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              News Link
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://example.com/news/article"
+              value={newsUrl}
+              onChange={(e) => setNewsUrl(e.target.value)}
+            />
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Category
             </label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={newsCategory}
-            onChange={(e) => setNewsCategory(e.target.value)}>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={newsCategory}
+              onChange={(e) => setNewsCategory(e.target.value)}
+            >
               <option>Global</option>
               <option>India</option>
               <option>Kerala</option>
@@ -379,130 +462,261 @@ const renderNewsEditor = () => (
               <option>UPSC</option>
             </select>
           </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Headline</label>
-          <input
-            type="text"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter news title"
-            value={newsTitle}
-            onChange={(e) => setNewsTitle(e.target.value)}
-          />
-        </div>
-
-        <button
-          onClick={handleNewsSubmit}
-          disabled={isSubmitting}
-          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2 disabled:opacity-50"
-        >
-          {isSubmitting ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>Publishing...</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              <span>Publish News</span>
-            </>
-          )}
-        </button>
-      </div>
-    </div>
-
-    {/* Static display */}
-    {/* <div className="space-y-4">
-      <h4 className="text-lg font-medium text-gray-800">Existing News Posts</h4>
-      {[1, 2, 3].map((item) => (
-        <div key={item} className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
-          <div>
-            <h5 className="font-medium text-gray-900">Sample News Title {item}</h5>
-            <p className="text-sm text-gray-500">Published on Jan {10 + item}, 2024</p>
-          </div>
-          <div className="flex space-x-2">
-            <button className="text-blue-600 hover:text-blue-800"><Edit className="w-4 h-4" /></button>
-            <button className="text-red-600 hover:text-red-800"><Trash2 className="w-4 h-4" /></button>
-          </div>
-        </div>
-      ))}
-    </div> */}
-  </div>
-);
-
-
-  const renderEventEditor = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-800">Manage Events</h3>
-        <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Add Event</span>
-        </button>
-      </div>
-
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Event Title
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter event title"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date
-              </label>
-              <input
-                type="date"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time
-              </label>
-              <input
-                type="time"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Event location"
-              />
-            </div>
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
+              Headline
             </label>
-            <textarea
-              rows={4}
+            <input
+              type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter event description..."
+              placeholder="Enter news title"
+              value={newsTitle}
+              onChange={(e) => setNewsTitle(e.target.value)}
             />
           </div>
-
-          <button className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2">
-            <Save className="w-4 h-4" />
-            <span>Create Event</span>
+          <button
+            onClick={handleNewsSubmit}
+            disabled={isSubmitting}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2 disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Publishing...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Publish News</span>
+              </>
+            )}
           </button>
         </div>
       </div>
+    </div>
+  );
+
+  const renderEventEditor = () => (
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <h2 className="text-lg font-semibold text-gray-900 mb-6">
+        Create New Event
+      </h2>
+      <form onSubmit={handleEventSubmit} className="space-y-6">
+        {/* Cover Photo */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Cover Photo
+          </label>
+          <div className="flex items-center space-x-4">
+            <div className="flex-1">
+              <input
+                type="url"
+                name="coverPhoto"
+                value={eventForm.coverPhoto}
+                onChange={handleInputChange}
+                placeholder="Enter image URL or upload"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {coverPhotoFile && (
+                <div className="mt-2 text-xs text-gray-500">
+                  Uploaded: {coverPhotoFile.name}
+                </div>
+              )}
+            </div>
+            <label
+              htmlFor="cover-photo-upload"
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center space-x-2 cursor-pointer"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Upload</span>
+              <input
+                id="cover-photo-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setCoverPhotoFile(file);
+                }}
+              />
+            </label>
+          </div>
+        </div>
+
+        {/* Event Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Name
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={eventForm.name}
+            onChange={handleInputChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Enter event name"
+          />
+        </div>
+
+        {/* Event Date - NEW */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Date
+          </label>
+          <input
+            type="date"
+            name="date"
+            value={eventForm.date}
+            onChange={handleInputChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Description
+          </label>
+          <textarea
+            name="description"
+            value={eventForm.description}
+            onChange={handleInputChange}
+            required
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Describe the event..."
+          />
+        </div>
+
+        {/* Participant Limit & Venue */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Participant Limit
+            </label>
+            <input
+              type="number"
+              name="participantLimit"
+              value={eventForm.participantLimit}
+              onChange={handleInputChange}
+              min="1"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Max participants"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Venue
+            </label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                name="venue"
+                value={eventForm.venue}
+                onChange={handleInputChange}
+                required
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Event venue"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Mode & Contact */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Event Mode
+            </label>
+            <div className="relative">
+              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                name="mode"
+                value={eventForm.mode}
+                onChange={handleInputChange}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="offline">Offline</option>
+                <option value="online">Online</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Organizer Contact 1
+            </label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="tel"
+                name="organizerContact1"
+                value={eventForm.organizerContact1}
+                onChange={handleInputChange}
+                required
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Contact number"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Time
+            </label>
+            <div className="relative">
+              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="time"
+                name="time"
+                value={eventForm.time}
+                onChange={handleInputChange}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Organizer Contact 2
+            </label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="tel"
+                name="organizerContact2"
+                value={eventForm.organizerContact2}
+                onChange={handleInputChange}
+                required
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Contact number"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isEventUploading}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50"
+          >
+            {isEventUploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>Create Event</>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 
@@ -529,7 +743,7 @@ const renderNewsEditor = () => (
           <div className="flex items-center justify-between h-16">
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
             <div className="text-sm text-gray-500">
-              Civil Servants Club TKMCE
+              Civil Service aspirants Club TKMCE
             </div>
           </div>
         </div>

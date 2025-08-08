@@ -19,6 +19,9 @@ import AdminPanel from './components/AdminPanel';
 import PDFViewer from './components/PDFViewer';
 import AccountDetails from './components/AccountDetails';
 import Profile from './components/Profile';
+import OurTeam from './components/OurTeam';
+import TeamPage from './components/TeamPage';
+import EventPage from './components/EventPage';
 import { useModal } from './hooks/useModal';
 import './styles/locomotive.css';
 
@@ -26,6 +29,7 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  
   const { isOpen, openModal, closeModal } = useModal();
   const loginModal = useModal();
 
@@ -43,6 +47,7 @@ const AppContent: React.FC = () => {
   const isHomePage = location.pathname === '/';
   const isDashboardPage = location.pathname === '/dashboard';
   const isAdminPage = location.pathname === '/admin';
+  const isEventPage = location.pathname.startsWith('/event/');
 
   const handleLogin = (credentials: {
     email: string;
@@ -53,7 +58,6 @@ const AppContent: React.FC = () => {
     setUser({ email: credentials.email, role: credentials.role, name: credentials.name });
     loginModal.closeModal();
 
-    // Navigate based on role
     if (credentials.role === 'admin') {
       navigate('/admin');
     } else {
@@ -76,7 +80,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Home Page Layout */}
+      {/* Home Page */}
       {isHomePage && (
         <div className="bg-dark-bg text-white">
           <Header
@@ -87,6 +91,7 @@ const AppContent: React.FC = () => {
           />
           <Hero onSignupClick={openModal} />
           <About />
+          <OurTeam />
           <Contact />
           <Footer />
           <SignupModal isOpen={isOpen} onClose={closeModal} />
@@ -99,28 +104,39 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      {/* Dashboard Page */}
+      {/* Dashboard */}
       {isDashboardPage && user && (
         <Dashboard user={user} onOpenPDF={handleOpenPDF} onLogout={handleLogout} />
       )}
 
-      {/* Admin Page */}
+      {/* Event Page */}
+      {isEventPage && user && (
+        <EventPage user={user} onLogout={handleLogout} />
+      )}
+
+      {/* Admin */}
       {isAdminPage && user && isAdmin && <AdminPanel />}
 
-      {/* Account Details Page Layout */}
+      {/* Account Details */}
       {location.pathname === '/account' && user && (
         <AccountDetails user={user} onLogout={handleLogout} />
       )}
       {location.pathname === '/account' && !user && <Navigate to="/" replace />}
 
-      {/* Profile Page Layout */}
+      {/* Profile */}
       {location.pathname === '/profile' && user && (
         <Profile user={user} onLogout={handleLogout} onOpenPDF={handleOpenPDF} />
       )}
       {location.pathname === '/profile' && !user && <Navigate to="/" replace />}
 
+      {/* Team Page Layout */}
+      {location.pathname === '/team' && (
+        <TeamPage />
+      )}
+
       {/* Unauthorized Redirects */}
       {isDashboardPage && !user && <Navigate to="/" replace />}
+      {isEventPage && !user && <Navigate to="/" replace />}
       {isAdminPage && (!user || !isAdmin) && (
         <Navigate to={user ? '/dashboard' : '/'} replace />
       )}
@@ -146,6 +162,8 @@ function App() {
         <Route path="/admin" element={<AppContent />} />
         <Route path="/account" element={<AppContent />} />
         <Route path="/profile" element={<AppContent />} />
+        <Route path="/event/:id" element={<AppContent />} />
+        <Route path="/team" element={<AppContent />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

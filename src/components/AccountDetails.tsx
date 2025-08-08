@@ -164,7 +164,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
   return (
     <div className="bg-[#0f172a] min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-40 glass-panel border-b border-white/10">
+      <div className="relative z-40 glass-panel border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
