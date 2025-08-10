@@ -15,6 +15,8 @@ import {
   User,
   Settings,
   LogOut,
+  Menu,
+  X,
 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -63,10 +65,11 @@ interface EventItem {
   organizer_contact_2: string;
 }
 
-
 const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [activeSection, setActiveSection] = useState('events');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+
   // Data states
   const [questionPapers, setQuestionPapers] = useState<QuestionPaper[]>([]);
   const [loadingQP, setLoadingQP] = useState(false);
@@ -156,26 +159,26 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     navigate('/');
   };
 
+  // Fetch events
   useEffect(() => {
-    if (activeSection === "events") {
+    if (activeSection === 'events') {
       (async () => {
         setLoadingEvents(true);
         setErrorEvents(null);
         try {
-          const res = await axios.get<EventItem[]>(
-            "http://localhost:5000/api/getevents"
-          );
+          const res = await axios.get<EventItem[]>('http://localhost:5000/api/getevents');
           setEvents(res.data);
         } catch {
-          setErrorEvents("Failed to fetch events");
+          setErrorEvents('Failed to fetch events');
         } finally {
           setLoadingEvents(false);
         }
       })();
     }
   }, [activeSection]);
+
   // Fetch question papers
-    useEffect(() => {
+  useEffect(() => {
     if (activeSection === 'questions') {
       (async () => {
         setLoadingQP(true);
@@ -192,6 +195,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [activeSection]);
 
+  // Fetch newspapers
   useEffect(() => {
     if (activeSection === 'newspapers') {
       (async () => {
@@ -209,6 +213,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [activeSection]);
 
+  // Fetch news
   useEffect(() => {
     if (activeSection === 'news') {
       (async () => {
@@ -226,6 +231,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [activeSection]);
 
+  // Set default selected category when news data updates or section changes
   useEffect(() => {
     if (activeSection === 'news') {
       const foundCategory = categories.find((cat) =>
@@ -244,125 +250,114 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
   const renderContent = () => {
     switch (activeSection) {
-      case "events":
-  if (loadingEvents) return <p className="text-gray-400">Loading events...</p>;
-  if (errorEvents) return <p className="text-red-500">{errorEvents}</p>;
-  return (
-    <div className="grid gap-8 justify-items-center">
-      {events.map((event) => (
-        <div
-          key={event.id}
-          className="bg-gradient-to-br from-gray-800 to-gray-900/80 rounded-2xl shadow-xl border border-white/10 overflow-hidden w-[90%] md:w-[60%] lg:w-[40%] transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:border-neon-blue/30"
-        >
-          {/* Event image */}
-          <img
-            src={event.img_url}
-            alt={event.title}
-            className="w-full h-56 object-cover"
-          />
-          
-          {/* Card content */}
-          <div className="p-6 flex flex-col gap-5 text-white">
-            {/* Title */}
-            <h3 className="text-2xl font-bold text-center text-white">
-              {event.title}
-            </h3>
-            
-            {/* Description */}
-            <p className="text-gray-300 text-sm text-center leading-relaxed">
-              {event.description.length > 150
-                ? event.description.substring(0, 150) + "..."
-                : event.description}
-            </p>
-            
-            {/* Event info section */}
-            <div className="grid grid-cols-2 gap-6 text-sm">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-neon-blue text-lg">📅</span>
-                  <div>
-                    <span className="text-white font-bold">Date: </span>
-                    <span className="text-gray-300 font-medium">
-                      {new Date(event.date).toLocaleDateString('en-US', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-neon-purple text-lg">🕒</span>
-                  <div>
-                    <span className="text-white font-bold">Time: </span>
-                    <span className="text-gray-300 font-medium">{event.time}</span>
-                  </div>
+      case 'events':
+        if (loadingEvents) return <p className="text-gray-400 text-center py-8">Loading events...</p>;
+        if (errorEvents) return <p className="text-red-500 text-center py-8">{errorEvents}</p>;
+        return (
+  <div className="max-w-lg sm:max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 space-y-6">
+    {events.map((event) => (
+      <div
+        key={event.id}
+        className="bg-gradient-to-br from-gray-800 to-gray-900/80 rounded-2xl shadow-xl border border-white/10 overflow-hidden w-full max-w-md mx-auto transition-all duration-500 transform hover:scale-[1.02] hover:shadow-2xl hover:border-neon-blue/30"
+      >
+        <img
+          src={event.img_url}
+          alt={event.title}
+          className="w-full h-40 sm:h-48 md:h-56 object-cover"
+        />
+        <div className="p-4 sm:p-6 flex flex-col gap-3 sm:gap-4 text-white">
+          <h3 className="text-lg sm:text-xl font-bold text-center leading-tight">{event.title}</h3>
+          <p className="text-gray-300 text-xs sm:text-sm text-center leading-relaxed px-2">
+            {event.description.length > 100
+              ? event.description.substring(0, 100) + '...'
+              : event.description}
+          </p>
+
+          {/* Event details */}
+          <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0 text-xs sm:text-sm">
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <span className="text-neon-blue text-lg flex-shrink-0">📅</span>
+                <div>
+                  <span className="text-white font-semibold block">Date</span>
+                  <span className="text-gray-300">
+                    {new Date(event.date).toLocaleDateString('en-US', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
                 </div>
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-orange-400 text-lg">📺</span>
-                  <div>
-                    <span className="text-white font-bold">Mode: </span>
-                    <span className="text-gray-300 font-medium">{event.mode}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-400 text-lg">📍</span>
-                  <div>
-                    <span className="text-white font-bold">Venue: </span>
-                    <span className="text-gray-300 font-medium">{event.venue}</span>
-                  </div>
+              <div className="flex items-start gap-2">
+                <span className="text-neon-purple text-lg flex-shrink-0">🕒</span>
+                <div>
+                  <span className="text-white font-semibold block">Time</span>
+                  <span className="text-gray-300">{event.time}</span>
                 </div>
               </div>
             </div>
-            
-            {/* Footer - slots + button */}
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">
-                🎟 Max: <span className="text-white font-semibold">{event.max_participants}</span>
-              </span>
-              <button
-                onClick={() => navigate(`/event/${event.id}`)}
-                className="bg-neon-blue hover:bg-neon-blue/80 px-6 py-2 rounded-lg text-sm text-white font-semibold transition-all duration-300"
-              >
-                Enroll
-              </button>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <span className="text-orange-400 text-lg flex-shrink-0">📺</span>
+                <div>
+                  <span className="text-white font-semibold block">Mode</span>
+                  <span className="text-gray-300">{event.mode}</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 text-lg flex-shrink-0">📍</span>
+                <div>
+                  <span className="text-white font-semibold block">Venue</span>
+                  <span className="text-gray-300 break-words">{event.venue}</span>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Bottom section */}
+          <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-3 pt-3 border-t border-white/10">
+            <span className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
+              🎟 Max Participants: <span className="text-white font-semibold">{event.max_participants}</span>
+            </span>
+            <button
+              onClick={() => navigate(`/event/${event.id}`)}
+              className="w-full sm:w-auto bg-neon-blue hover:bg-neon-blue/80 px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 min-w-[110px]"
+            >
+              Enroll Now
+            </button>
+          </div>
         </div>
-      ))}
-    </div>
-  );
-
-
+      </div>
+    ))}
+  </div>
+);
 
 
       case 'questions':
-        if (loadingQP) return <p className="text-gray-400">Loading question papers...</p>;
-        if (errorQP) return <p className="text-red-500">{errorQP}</p>;
+        if (loadingQP) return <p className="text-gray-400 text-center py-8">Loading question papers...</p>;
+        if (errorQP) return <p className="text-red-500 text-center py-8">{errorQP}</p>;
 
         return (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {questionPapers.map((paper) => (
               <div
                 key={paper.id}
-                className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20"
+                className="dashboard-card glass-panel p-4 sm:p-6 rounded-xl border border-neon-blue/20"
               >
-                <div className="flex items-center mb-4">
-                  <FileText className="w-8 h-8 text-neon-blue mr-3" />
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">{paper.title}</h3>
-                    <p className="text-sm text-gray-400">
+                <div className="flex items-start mb-4">
+                  <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-neon-blue mr-3 flex-shrink-0 mt-1" />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-white leading-tight mb-1">{paper.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-400">
                       {paper.subject} • {paper.year}
                     </p>
                   </div>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex flex-col space-y-2 sm:space-y-3">
                   <button
                     onClick={() => onOpenPDF(paper.url, paper.title, 'question')}
-                    className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300 hover:scale-105"
+                    className="flex items-center justify-center space-x-2 py-2.5 px-4 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300 hover:scale-105 text-sm"
                   >
                     <Eye className="w-4 h-4" />
                     <span>View</span>
@@ -370,7 +365,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                   <a
                     href={paper.url}
                     download
-                    className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg transition-all duration-300 hover:scale-105"
+                    className="flex items-center justify-center space-x-2 py-2.5 px-4 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg transition-all duration-300 hover:scale-105 text-sm"
                   >
                     <Download className="w-4 h-4" />
                     <span>Download</span>
@@ -382,27 +377,27 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         );
 
       case 'newspapers':
-        if (loadingNP) return <p className="text-gray-400">Loading newspapers...</p>;
-        if (errorNP) return <p className="text-red-500">{errorNP}</p>;
+        if (loadingNP) return <p className="text-gray-400 text-center py-8">Loading newspapers...</p>;
+        if (errorNP) return <p className="text-red-500 text-center py-8">{errorNP}</p>;
 
         return (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {newspapers.map((paper) => (
               <div
                 key={paper.id}
-                className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20"
+                className="dashboard-card glass-panel p-4 sm:p-6 rounded-xl border border-neon-blue/20"
               >
-                <div className="flex items-center mb-4">
-                  <Newspaper className="w-8 h-8 text-neon-blue mr-3" />
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">{paper.title}</h3>
-                    <p className="text-sm text-gray-400">{paper.date}</p>
+                <div className="flex items-start mb-4">
+                  <Newspaper className="w-6 h-6 sm:w-8 sm:h-8 text-neon-blue mr-3 flex-shrink-0 mt-1" />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-white leading-tight mb-1">{paper.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-400">{paper.date}</p>
                   </div>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex flex-col space-y-2 sm:space-y-3">
                   <button
                     onClick={() => onOpenPDF(paper.url, paper.title, 'newspaper')}
-                    className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300 hover:scale-105"
+                    className="flex items-center justify-center space-x-2 py-2.5 px-4 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300 hover:scale-105 text-sm"
                   >
                     <Eye className="w-4 h-4" />
                     <span>Read</span>
@@ -410,7 +405,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                   <a
                     href={paper.url}
                     download
-                    className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg transition-all duration-300 hover:scale-105"
+                    className="flex items-center justify-center space-x-2 py-2.5 px-4 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg transition-all duration-300 hover:scale-105 text-sm"
                   >
                     <Download className="w-4 h-4" />
                     <span>Download</span>
@@ -422,64 +417,67 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         );
 
       case 'news':
-        if (loadingNews) return <p className="text-gray-400">Loading news...</p>;
-        if (errorNews) return <p className="text-red-500">{errorNews}</p>;
+        if (loadingNews) return <p className="text-gray-400 text-center py-8">Loading news...</p>;
+        if (errorNews) return <p className="text-red-500 text-center py-8">{errorNews}</p>;
         if (!news || !Array.isArray(news))
-          return <p className="text-red-500">News data is unavailable</p>;
+          return <p className="text-red-500 text-center py-8">News data is unavailable</p>;
 
         const filteredNews = news.filter(
           (n) => n?.category?.toLowerCase() === selectedCategory.toLowerCase()
         );
 
         return (
-          <div className="space-y-8">
-            {/* Category buttons */}
-            <div className="flex flex-wrap gap-4 mb-6">
-              {categories.map((category) => {
-                const isActive = selectedCategory === category;
-                return (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`
-                      flex-1 min-w-[120px] px-6 py-3 rounded-lg font-medium text-center transition-colors 
-                      ${
-                        isActive
-                          ? 'bg-neon-blue text-white border border-neon-blue'
-                          : 'bg-white/10 text-gray-300 border border-transparent hover:bg-neon-blue/50 hover:text-white'
-                      }
-                    `}
-                  >
-                    {category}
-                  </button>
-                );
-              })}
+          <div className="space-y-6 sm:space-y-8">
+            {/* Category buttons - improved mobile layout */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2 sm:gap-3">
+                {categories.map((category) => {
+                  const isActive = selectedCategory === category;
+                  return (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-center transition-colors text-xs sm:text-sm lg:text-base lg:flex-1 lg:min-w-[120px]
+                        ${
+                          isActive
+                            ? 'bg-neon-blue text-white border border-neon-blue'
+                            : 'bg-white/10 text-gray-300 border border-transparent hover:bg-neon-blue/50 hover:text-white'
+                        }`}
+                    >
+                      {category}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <h2 className="text-xl font-semibold text-white mt-4">
-              Showing: <span className="text-neon-blue">{selectedCategory} News</span>
-            </h2>
+            <div className="text-center sm:text-left">
+              <h2 className="text-lg sm:text-xl font-semibold text-white">
+                Showing: <span className="text-neon-blue">{selectedCategory} News</span>
+              </h2>
+            </div>
 
-            {/* News Cards */}
             {filteredNews.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredNews.map((newsItem) => (
                   <div
                     key={newsItem.id}
-                    className="dashboard-card glass-panel p-6 rounded-xl border border-neon-blue/20"
+                    className="dashboard-card glass-panel p-4 sm:p-6 rounded-xl border border-neon-blue/20"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <span className="px-3 py-1 bg-neon-blue/20 text-neon-blue text-xs rounded-full">
+                    <div className="flex items-start justify-between mb-3 gap-2">
+                      <span className="px-2 sm:px-3 py-1 bg-neon-blue/20 text-neon-blue text-xs rounded-full flex-shrink-0">
                         {newsItem.category}
                       </span>
-                      <span className="text-sm text-gray-400">{newsItem.posted_at || 'Unknown'}</span>
+                      <span className="text-xs text-gray-400 text-right">{newsItem.posted_at || 'Unknown'}</span>
                     </div>
-                    <h3 className="text-xl font-semibold text-white glow-text mb-3">{newsItem.title}</h3>
+                    <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white glow-text mb-3 leading-tight">
+                      {newsItem.title}
+                    </h3>
                     <a
                       href={newsItem.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-4 inline-block text-neon-blue hover:text-neon-purple transition-colors"
+                      className="inline-block text-neon-blue hover:text-neon-purple transition-colors text-sm font-medium"
                     >
                       Read More →
                     </a>
@@ -487,7 +485,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400">No news found for this category.</p>
+              <p className="text-gray-400 text-center py-8">No news found for this category.</p>
             )}
           </div>
         );
@@ -499,70 +497,61 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
   return (
     <div className="bg-[#0f172a] min-h-screen">
-      {/* Header - sticky removed */}
+      {/* Header - Mobile optimized */}
       <div className="dashboard-header relative z-40 glass-panel border-b border-white/10">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <button className="text-2xl font-bold text-white glow-text hover:text-neon-blue transition-colors cursor-pointer flex items-center space-x-2">
-                <span>Dashboard</span>
-              </button>
-              <p className="text-gray-400">Welcome back, {user?.name}</p>
+            {/* Left: Dashboard Title */}
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-2xl font-bold text-white glow-text">Dashboard</h1>
+              <p className="text-gray-400 text-xs sm:text-sm mt-0.5">Welcome back, {user?.name}</p>
             </div>
 
+            {/* Right: User dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowUserDropdown((show) => !show)}
                 aria-haspopup="true"
                 aria-expanded={showUserDropdown}
-                className="flex items-center space-x-2 px-3 py-2 bg-glass-bg backdrop-blur-sm
-                  border border-white/20 rounded-full hover:border-neon-blue/50
-                  hover:shadow-glow transition-all duration-300 group"
+                className="flex items-center space-x-2 px-2 sm:px-3 py-2 bg-glass-bg backdrop-blur-sm border border-white/20 rounded-full hover:border-neon-blue/50 hover:shadow-glow transition-all duration-300 group"
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full
-                                flex items-center justify-center text-white font-semibold text-sm">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
                   {user?.name.charAt(0).toUpperCase()}
                 </div>
-                <ChevronDown className="w-4 h-4 text-white group-hover:text-neon-blue" />
+                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:text-neon-blue" />
               </button>
 
               {showUserDropdown && (
                 <>
-                  {/* Overlay to block content interaction */}
-                  <div
-                    className="fixed inset-0 z-[999]"
-                    onClick={() => setShowUserDropdown(false)}
-                  />
+                  {/* Overlay */}
+                  <div className="fixed inset-0 z-[998]" onClick={() => setShowUserDropdown(false)} />
                   {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-2 w-80 bg-gray-900/95 backdrop-blur-md 
-                                  border border-white/20 rounded-2xl shadow-2xl z-[1000] overflow-hidden">
-                    <div className="bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 px-6 py-4 border-b border-white/10">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full 
-                                      flex items-center justify-center text-white font-bold text-lg">
+                  <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-gray-900/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl z-[999] overflow-hidden">
+                    <div className="bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10">
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg">
                           {user?.email.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <h3 className="text-white font-semibold">{user?.name}</h3>
-                          <p className="text-gray-400 text-sm">{user?.email}</p>
-                          <span className="inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 bg-neon-blue/20 text-neon-blue">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-white font-semibold text-sm sm:text-base truncate">{user?.name}</h3>
+                          <p className="text-gray-400 text-xs sm:text-sm truncate">{user?.email}</p>
+                          <span className="inline-block px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium mt-1 bg-neon-blue/20 text-neon-blue">
                             Student
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="py-2">
+                    <div className="py-1 sm:py-2">
                       <button
                         onClick={() => {
                           setShowUserDropdown(false);
                           navigate('/account', { state: { email: user?.email } });
                         }}
-                        className="w-full px-6 py-3 text-left text-white hover:bg-white/10 
-                                 flex items-center space-x-3 transition-all duration-300 group"
+                        className="w-full px-4 sm:px-6 py-2 sm:py-3 text-left text-white hover:bg-white/10 flex items-center space-x-3 transition-all duration-300"
                       >
-                        <User className="w-5 h-5 text-neon-blue" />
-                        <div>
-                          <p className="font-medium">Account Details</p>
+                        <User className="w-4 h-4 sm:w-5 sm:h-5 text-neon-blue flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm sm:text-base">Account Details</p>
                           <p className="text-xs text-gray-400">View and manage your profile</p>
                         </div>
                       </button>
@@ -571,24 +560,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                           setShowUserDropdown(false);
                           navigate('/profile');
                         }}
-                        className="w-full px-6 py-3 text-left text-white hover:bg-white/10 
-                                 flex items-center space-x-3 transition-all duration-300 group"
+                        className="w-full px-4 sm:px-6 py-2 sm:py-3 text-left text-white hover:bg-white/10 flex items-center space-x-3 transition-all duration-300"
                       >
-                        <Settings className="w-5 h-5 text-neon-purple" />
-                        <div>
-                          <p className="font-medium">Profile</p>
+                        <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-neon-purple flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm sm:text-base">Profile</p>
                           <p className="text-xs text-gray-400">Manage your preferences</p>
                         </div>
                       </button>
-                      <div className="border-t border-white/10 my-2"></div>
+                      <div className="border-t border-white/10 my-1 sm:my-2"></div>
                       <button
                         onClick={handleLogout}
-                        className="w-full px-6 py-3 text-left text-red-400 hover:bg-red-500/10 
-                                 flex items-center space-x-3 transition-all duration-300 group"
+                        className="w-full px-4 sm:px-6 py-2 sm:py-3 text-left text-red-400 hover:bg-red-500/10 flex items-center space-x-3 transition-all duration-300"
                       >
-                        <LogOut className="w-5 h-5" />
-                        <div>
-                          <p className="font-medium">Sign Out</p>
+                        <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm sm:text-base">Sign Out</p>
                           <p className="text-xs text-red-300">Logout from your account</p>
                         </div>
                       </button>
@@ -602,17 +589,55 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
       </div>
 
       {/* Navigation */}
-      <div className="dashboard-nav container mx-auto px-6 py-6">
-        <div className="flex space-x-1 bg-white/5 p-1 rounded-xl border border-white/10">
+      <div className="dashboard-nav container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        {/* Mobile: Hamburger menu */}
+        <div className="block sm:hidden">
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="w-full flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 text-white"
+          >
+            <span className="font-medium">{sections.find((s) => s.id === activeSection)?.label}</span>
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+
+          {isMobileMenuOpen && (
+            <div className="mt-2 bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+              {sections.map((section) => {
+                const Icon = section.icon;
+                const isActive = activeSection === section.id;
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => {
+                      setActiveSection(section.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center space-x-3 p-3 transition-all duration-300 border-b border-white/5 last:border-b-0 ${
+                      isActive
+                        ? 'bg-neon-blue/20 text-neon-blue'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{section.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop / Tablet: Horizontal navigation */}
+        <div className="hidden sm:flex flex-wrap bg-white/5 p-1 rounded-xl border border-white/10 justify-center space-x-1">
           {sections.map((section) => {
             const Icon = section.icon;
+            const isActive = activeSection === section.id;
             return (
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg 
-                          transition-all duration-300 ${
-                  activeSection === section.id
+                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all duration-300 text-sm md:text-base ${
+                  isActive
                     ? 'bg-neon-blue/20 text-neon-blue border border-neon-blue/30'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -626,9 +651,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
       </div>
 
       {/* Content */}
-      <div className="dashboard-content container mx-auto px-6 py-8">
-        {renderContent()}
-      </div>
+      <div className="dashboard-content container mx-auto px-4 sm:px-6 py-8">{renderContent()}</div>
 
       <Footer />
     </div>

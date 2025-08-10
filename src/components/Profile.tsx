@@ -38,7 +38,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
     // Simulate fetching user's enrolled events and liked PDFs
     const fetchUserData = async () => {
       setLoading(true);
-      
+
       // Mock enrolled events
       const mockEvents: EnrolledEvent[] = [
         {
@@ -125,7 +125,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
   };
 
   const handleRemoveLike = (pdfId: number) => {
-    setLikedPDFs(prev => prev.filter(pdf => pdf.id !== pdfId));
+    setLikedPDFs((prev) => prev.filter((pdf) => pdf.id !== pdfId));
   };
 
   if (loading) {
@@ -140,25 +140,29 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
   }
 
   return (
-    <div className="bg-[#0f172a] min-h-screen">
+    <div className="bg-[#0f172a] min-h-screen flex flex-col">
       {/* Header */}
-      <div className="relative top-0 z-40 glass-panel border-b border-white/10">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button 
+      <div className="relative z-40 glass-panel border-b border-white/10">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="flex items-center space-x-3 flex-wrap">
+              <button
                 onClick={() => navigate('/dashboard')}
-                className="flex items-center space-x-2 text-white hover:text-neon-blue transition-colors"
+                className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm
+                          border border-white/20 rounded-full hover:border-neon-blue/50
+                          hover:shadow-glow transition-all duration-300 group"
+                aria-label="Back to Dashboard"
               >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Dashboard</span>
+                <ArrowLeft className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors" />
               </button>
-              <h1 className="text-2xl font-bold text-white glow-text">My Profile</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-white glow-text whitespace-nowrap">
+                My Profile
+              </h1>
             </div>
-            
+
             <button
               onClick={onLogout}
-              className="px-4 py-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors"
+              className="px-4 py-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors w-full sm:w-auto"
             >
               Logout
             </button>
@@ -167,25 +171,23 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-8">
-        <div className="max-w-6xl mx-auto">
+      <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-6xl mx-auto space-y-8">
           {/* Profile Header */}
-          <div className="glass-panel p-8 rounded-2xl border border-neon-blue/20 mb-8">
-            <div className="flex items-center space-x-6">
-              <div className="w-20 h-20 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-white font-bold text-2xl">
+          <div className="glass-panel p-6 rounded-2xl border border-neon-blue/20 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0">
+              <div className="w-20 h-20 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
                 {user?.email.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  {user?.email.split('@')[0]}
-                </h2>
-                <p className="text-gray-300">{user?.email}</p>
-                <div className="flex items-center space-x-4 mt-2">
-                  <span className="px-3 py-1 bg-neon-blue/20 text-neon-blue rounded-full text-sm">
-                    {enrolledEvents.length} Events Enrolled
+              <div className="flex flex-col">
+                <h2 className="text-2xl font-bold text-white mb-1 break-words">{user?.email.split('@')[0]}</h2>
+                <p className="text-gray-300 break-words">{user?.email}</p>
+                <div className="flex flex-wrap space-x-0 space-y-2 mt-3 sm:space-x-4 sm:space-y-0">
+                  <span className="inline-block px-3 py-1 bg-neon-blue/20 text-neon-blue rounded-full text-sm">
+                    {enrolledEvents.length} Event{enrolledEvents.length !== 1 ? 's' : ''} Enrolled
                   </span>
-                  <span className="px-3 py-1 bg-neon-purple/20 text-neon-purple rounded-full text-sm">
-                    {likedPDFs.length} PDFs Liked
+                  <span className="inline-block px-3 py-1 bg-neon-purple/20 text-neon-purple rounded-full text-sm">
+                    {likedPDFs.length} PDF{likedPDFs.length !== 1 ? 's' : ''} Liked
                   </span>
                 </div>
               </div>
@@ -193,10 +195,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex space-x-1 bg-white/5 p-1 rounded-xl border border-white/10 mb-8">
+          <div className="flex flex-col sm:flex-row sm:space-x-1 bg-white/5 p-1 rounded-xl border border-white/10 mb-8">
             <button
               onClick={() => setActiveTab('events')}
-              className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all duration-300 ${
+              className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all duration-300 mb-2 sm:mb-0 ${
                 activeTab === 'events'
                   ? 'bg-neon-blue/20 text-neon-blue border border-neon-blue/30'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -229,16 +231,23 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
                   <p className="text-gray-500 mt-2">Browse events in the dashboard to get started</p>
                 </div>
               ) : (
-                <div className="grid gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {enrolledEvents.map((event) => (
-                    <div key={event.id} className="glass-panel p-6 rounded-xl border border-neon-blue/20">
-                      <div className="flex items-start justify-between mb-4">
-                        <h4 className="text-xl font-semibold text-white">{event.title}</h4>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(event.status)}`}>
+                    <div
+                      key={event.id}
+                      className="glass-panel p-6 rounded-xl border border-neon-blue/20 flex flex-col justify-between"
+                    >
+                      <div className="mb-4">
+                        <h4 className="text-xl font-semibold text-white mb-2">{event.title}</h4>
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${getStatusColor(
+                            event.status
+                          )}`}
+                        >
                           {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-6 text-sm text-gray-400">
+                      <div className="flex flex-col space-y-2 text-sm text-gray-400">
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4" />
                           <span>{event.date}</span>
@@ -265,9 +274,12 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
                   <p className="text-gray-500 mt-2">Like newspapers and question papers to save them here</p>
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {likedPDFs.map((pdf) => (
-                    <div key={pdf.id} className="glass-panel p-6 rounded-xl border border-neon-purple/20">
+                    <div
+                      key={pdf.id}
+                      className="glass-panel p-6 rounded-xl border border-neon-purple/20 flex flex-col"
+                    >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           {pdf.type === 'newspaper' ? (
@@ -276,9 +288,9 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
                             <FileText className="w-8 h-8 text-neon-purple" />
                           )}
                           <div>
-                            <h4 className="text-lg font-semibold text-white">{pdf.title}</h4>
+                            <h4 className="text-lg font-semibold text-white leading-tight">{pdf.title}</h4>
                             <p className="text-sm text-gray-400">
-                              {pdf.type === 'question' && pdf.subject && `${pdf.subject} • `}
+                              {pdf.type === 'question' && pdf.subject ? `${pdf.subject} • ` : ''}
                               {pdf.date}
                             </p>
                           </div>
@@ -291,21 +303,29 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
                           <Heart className="w-5 h-5 fill-current" />
                         </button>
                       </div>
-                      
-                      <div className="flex space-x-3">
+
+                      <div className="flex space-x-3 mt-auto">
                         <button
-                          onClick={() => onOpenPDF(`/pdfs/${pdf.title.toLowerCase().replace(/\s+/g, '-')}.pdf`, pdf.title, pdf.type)}
+                          onClick={() =>
+                            onOpenPDF(
+                              `/pdfs/${pdf.title.toLowerCase().replace(/\s+/g, '-')}.pdf`,
+                              pdf.title,
+                              pdf.type
+                            )
+                          }
                           className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300"
                         >
                           <Eye className="w-4 h-4" />
                           <span>View</span>
                         </button>
-                        <button className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg transition-all duration-300">
+                        <button
+                          className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg transition-all duration-300"
+                        >
                           <Download className="w-4 h-4" />
                           <span>Download</span>
                         </button>
                       </div>
-                      
+
                       <p className="text-xs text-gray-500 mt-3">
                         Liked on {new Date(pdf.likedAt).toLocaleDateString()}
                       </p>
@@ -316,7 +336,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onOpenPDF }) => {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

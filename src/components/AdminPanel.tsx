@@ -16,25 +16,25 @@ const AdminPanel: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   // Newspaper
-  const [newspaperTitle, setNewspaperTitle] = useState('');
-  const [newspaperDate, setNewspaperDate] = useState('');
-  const [newspaperFile, setNewspaperFile] = useState<File | null>(null);
+  const [newspaperTitle, setNewspaperTitle] = React.useState('');
+  const [newspaperDate, setNewspaperDate] = React.useState('');
+  const [newspaperFile, setNewspaperFile] = React.useState<File | null>(null);
 
   // Question Paper
-  const [examTitle, setExamTitle] = useState('');
-  const [examSubject, setExamSubject] = useState('');
-  const [examYear, setExamYear] = useState('');
-  const [examCategory, setExamCategory] = useState('');
-  const [questionPaperFile, setQuestionPaperFile] = useState<File | null>(null);
+  const [examTitle, setExamTitle] = React.useState('');
+  const [examSubject, setExamSubject] = React.useState('');
+  const [examYear, setExamYear] = React.useState('');
+  const [examCategory, setExamCategory] = React.useState('');
+  const [questionPaperFile, setQuestionPaperFile] = React.useState<File | null>(null);
 
   // News
-  const [newsTitle, setNewsTitle] = useState('');
-  const [newsUrl, setNewsUrl] = useState('');
-  const [newsCategory, setNewsCategory] = useState('General');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newsTitle, setNewsTitle] = React.useState('');
+  const [newsUrl, setNewsUrl] = React.useState('');
+  const [newsCategory, setNewsCategory] = React.useState('General');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Event (added date field)
-  const [eventForm, setEventForm] = useState({
+  const [eventForm, setEventForm] = React.useState({
     coverPhoto: '',
     name: '',
     description: '',
@@ -46,8 +46,8 @@ const AdminPanel: React.FC = () => {
     time: '',
     date: '',
   });
-  const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
-  const [isEventUploading, setIsEventUploading] = useState(false);
+  const [coverPhotoFile, setCoverPhotoFile] = React.useState<File | null>(null);
+  const [isEventUploading, setIsEventUploading] = React.useState(false);
 
   const tabs = [
     { id: 'newspapers', label: 'Newspapers', icon: Newspaper },
@@ -80,10 +80,7 @@ const AdminPanel: React.FC = () => {
       setNewspaperDate('');
       setNewspaperFile(null);
     } catch (error) {
-      alert(
-        'Error uploading newspaper: ' +
-          (error instanceof Error ? error.message : String(error))
-      );
+      alert('Error uploading newspaper: ' + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsUploading(false);
     }
@@ -115,10 +112,7 @@ const AdminPanel: React.FC = () => {
       setExamSubject('');
       setQuestionPaperFile(null);
     } catch (error) {
-      alert(
-        'Error uploading question paper: ' +
-          (error instanceof Error ? error.message : String(error))
-      );
+      alert('Error uploading question paper: ' + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsUploading(false);
     }
@@ -134,9 +128,7 @@ const AdminPanel: React.FC = () => {
     try {
       const res = await fetch('http://localhost:5000/api/admin/news', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newsTitle,
           url: newsUrl,
@@ -157,9 +149,7 @@ const AdminPanel: React.FC = () => {
 
   // ---- Event input change handler ----
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setEventForm((prev) => ({
@@ -171,7 +161,6 @@ const AdminPanel: React.FC = () => {
   // ---- Event submit handler with date field ----
   const handleEventSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (
       !eventForm.name ||
       !eventForm.description ||
@@ -184,7 +173,6 @@ const AdminPanel: React.FC = () => {
       alert('Please fill all required fields including date.');
       return;
     }
-
     setIsEventUploading(true);
     const formData = new FormData();
 
@@ -267,7 +255,7 @@ const AdminPanel: React.FC = () => {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Upload PDF
         </label>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer">
           <Upload className="mx-auto h-12 w-12 text-gray-400" />
           <div className="mt-4">
             <label htmlFor="newspaper-upload" className="cursor-pointer">
@@ -378,7 +366,7 @@ const AdminPanel: React.FC = () => {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Upload PDF
         </label>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer">
           <Upload className="mx-auto h-12 w-12 text-gray-400" />
           <div className="mt-4">
             <label htmlFor="question-upload" className="cursor-pointer">
@@ -427,9 +415,7 @@ const AdminPanel: React.FC = () => {
   const renderNewsEditor = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-800">
-          Manage News Posts
-        </h3>
+        <h3 className="text-xl font-semibold text-gray-800">Manage News Posts</h3>
       </div>
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="space-y-4">
@@ -498,16 +484,12 @@ const AdminPanel: React.FC = () => {
 
   const renderEventEditor = () => (
     <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">
-        Create New Event
-      </h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-6">Create New Event</h2>
       <form onSubmit={handleEventSubmit} className="space-y-6">
         {/* Cover Photo */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Event Cover Photo
-          </label>
-          <div className="flex items-center space-x-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Event Cover Photo</label>
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="flex-1">
               <input
                 type="url"
@@ -518,9 +500,7 @@ const AdminPanel: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               {coverPhotoFile && (
-                <div className="mt-2 text-xs text-gray-500">
-                  Uploaded: {coverPhotoFile.name}
-                </div>
+                <div className="mt-2 text-xs text-gray-500">Uploaded: {coverPhotoFile.name}</div>
               )}
             </div>
             <label
@@ -545,9 +525,7 @@ const AdminPanel: React.FC = () => {
 
         {/* Event Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Event Name
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Event Name</label>
           <input
             type="text"
             name="name"
@@ -561,9 +539,7 @@ const AdminPanel: React.FC = () => {
 
         {/* Event Date - NEW */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Event Date
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Event Date</label>
           <input
             type="date"
             name="date"
@@ -576,9 +552,7 @@ const AdminPanel: React.FC = () => {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Event Description
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Event Description</label>
           <textarea
             name="description"
             value={eventForm.description}
@@ -593,9 +567,7 @@ const AdminPanel: React.FC = () => {
         {/* Participant Limit & Venue */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Participant Limit
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Participant Limit</label>
             <input
               type="number"
               name="participantLimit"
@@ -607,9 +579,7 @@ const AdminPanel: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Venue
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Venue</label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -628,9 +598,7 @@ const AdminPanel: React.FC = () => {
         {/* Mode & Contact */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Event Mode
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Event Mode</label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <select
@@ -646,9 +614,7 @@ const AdminPanel: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Organizer Contact 1
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Organizer Contact 1</label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -664,11 +630,9 @@ const AdminPanel: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Time
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -681,9 +645,7 @@ const AdminPanel: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Organizer Contact 2
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Organizer Contact 2</label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -708,8 +670,8 @@ const AdminPanel: React.FC = () => {
           >
             {isEventUploading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Creating...</span>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Creating...
               </>
             ) : (
               <>Create Event</>
@@ -742,17 +704,16 @@ const AdminPanel: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <div className="text-sm text-gray-500">
-              Civil Service aspirants Club TKMCE
-            </div>
+            <div className="text-sm text-gray-500">Civil Service aspirants Club TKMCE</div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex space-x-8">
+        {/* mobile: stack sidebar above content */}
+        <div className="flex flex-col md:flex-row md:space-x-8">
           {/* Sidebar */}
-          <div className="w-64 flex-shrink-0">
+          <div className="w-full md:w-64 flex-shrink-0 mb-6 md:mb-0">
             <nav className="space-y-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -775,11 +736,7 @@ const AdminPanel: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-              {renderContent()}
-            </div>
-          </div>
+          <div className="flex-1">{renderContent()}</div>
         </div>
       </div>
     </div>

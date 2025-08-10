@@ -28,7 +28,6 @@ import './styles/locomotive.css';
 const AppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
   
   const { isOpen, openModal, closeModal } = useModal();
   const loginModal = useModal();
