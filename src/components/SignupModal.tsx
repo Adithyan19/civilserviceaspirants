@@ -1,7 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
-import { X, User, Mail, Phone, GraduationCap, Calendar, Eye, EyeOff, Lock } from 'lucide-react';
-import { api } from '../utils/api';
+import React, { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import {
+  X,
+  User,
+  Mail,
+  Phone,
+  GraduationCap,
+  Calendar,
+  Eye,
+  EyeOff,
+  Lock,
+} from "lucide-react";
+import { api } from "../utils/api";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -13,40 +23,45 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    pass: '',
-    phone: '',
-    course: '',
-    year: '',
-    interests: '',
-    confpass: ''
+    fullName: "",
+    email: "",
+    pass: "",
+    phone: "",
+    course: "",
+    year: "",
+    interests: "",
+    confpass: "",
   });
 
   const [showPassword, setShowPassword] = useState({
     pass: false,
-    confpass: false
+    confpass: false,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Store original overflow styles
-  const originalBodyOverflow = useRef<string>('');
-  const originalHtmlOverflow = useRef<string>('');
+  const originalBodyOverflow = useRef<string>("");
+  const originalHtmlOverflow = useRef<string>("");
 
   useEffect(() => {
     if (isOpen) {
       // Store original overflow styles
-      originalBodyOverflow.current = document.body.style.overflow || '';
-      originalHtmlOverflow.current = document.documentElement.style.overflow || '';
+      originalBodyOverflow.current = document.body.style.overflow || "";
+      originalHtmlOverflow.current =
+        document.documentElement.style.overflow || "";
 
       // Disable scrolling
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
 
       // Animate modal in
-      gsap.set(modalRef.current, { display: 'flex' });
-      gsap.fromTo(modalRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+      gsap.set(modalRef.current, { display: "flex" });
+      gsap.fromTo(
+        modalRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3 },
+      );
       gsap.fromTo(
         contentRef.current,
         { scale: 0.9, y: 40, opacity: 0 },
@@ -55,9 +70,9 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
           y: 0,
           opacity: 1,
           duration: 0.5,
-          ease: 'power3.out',
-          delay: 0.1
-        }
+          ease: "power3.out",
+          delay: 0.1,
+        },
       );
     } else {
       // Animate modal out
@@ -66,25 +81,27 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         y: 40,
         opacity: 0,
         duration: 0.3,
-        ease: 'power3.in'
+        ease: "power3.in",
       });
       gsap.to(modalRef.current, {
         opacity: 0,
         duration: 0.5,
         onComplete: () => {
-          gsap.set(modalRef.current, { display: 'none' });
+          gsap.set(modalRef.current, { display: "none" });
           // Restore original overflow styles
           document.body.style.overflow = originalBodyOverflow.current;
-          document.documentElement.style.overflow = originalHtmlOverflow.current;
-        }
+          document.documentElement.style.overflow =
+            originalHtmlOverflow.current;
+        },
       });
     }
 
     // Cleanup function to ensure scrolling is restored
     return () => {
       if (!isOpen) {
-        document.body.style.overflow = originalBodyOverflow.current || 'unset';
-        document.documentElement.style.overflow = originalHtmlOverflow.current || 'unset';
+        document.body.style.overflow = originalBodyOverflow.current || "unset";
+        document.documentElement.style.overflow =
+          originalHtmlOverflow.current || "unset";
       }
     };
   }, [isOpen]);
@@ -92,21 +109,24 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   // Enhanced close function to ensure scroll is restored
   const handleClose = () => {
     // Immediately restore scrolling
-    document.body.style.overflow = originalBodyOverflow.current || 'unset';
-    document.documentElement.style.overflow = originalHtmlOverflow.current || 'unset';
+    document.body.style.overflow = originalBodyOverflow.current || "unset";
+    document.documentElement.style.overflow =
+      originalHtmlOverflow.current || "unset";
 
     // Call parent close function
     onClose();
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const togglePasswordVisibility = (field: 'pass' | 'confpass') => {
+  const togglePasswordVisibility = (field: "pass" | "confpass") => {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
@@ -121,18 +141,18 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     if (formData.pass !== formData.confpass) {
-      alert('Passwords mismatch');
+      alert("Passwords mismatch");
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const response = await api.post('/api/signup', formData);
-      const data = response.data
+      const response = await api.post("/api/signup", formData);
+      const data = response.data;
 
       if (!data.success) {
         // Use data.error if exists or fallback message
-        throw new Error('Signup failed: ' + (data.error || 'Unknown error'));
+        throw new Error("Signup failed: " + (data.error || "Unknown error"));
       }
 
       if (contentRef.current) {
@@ -141,28 +161,30 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
           duration: 0.2,
           yoyo: true,
           repeat: 1,
-          ease: 'power2.inOut'
+          ease: "power2.inOut",
         });
       }
 
       setFormData({
-        fullName: '',
-        email: '',
-        pass: '',
-        phone: '',
-        course: '',
-        year: '',
-        interests: '',
-        confpass: ''
+        fullName: "",
+        email: "",
+        pass: "",
+        phone: "",
+        course: "",
+        year: "",
+        interests: "",
+        confpass: "",
       });
 
       setTimeout(() => {
         handleClose();
-        alert('🎉 Registration successful! Welcome to the Civil Servants Club.');
+        alert(
+          "🎉 Registration successful! Welcome to the Civil Servants Club.",
+        );
       }, 800);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      alert('❌ Something went wrong. Please try again. \n' + errorMsg);
+      alert("❌ Something went wrong. Please try again. \n" + errorMsg);
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -172,17 +194,17 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         handleClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener("keydown", handleEscape);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen]);
 
@@ -193,7 +215,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       ref={modalRef}
       onClick={handleBackdropClick}
       className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-      style={{ display: 'none' }}
+      style={{ display: "none" }}
     >
       <div
         ref={contentRef}
@@ -211,8 +233,12 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-white mb-1">Join Our Club</h2>
-            <p className="text-sm text-gray-300">Start your journey to civil service excellence</p>
+            <h2 className="text-3xl font-bold text-white mb-1">
+              Join Our Club
+            </h2>
+            <p className="text-sm text-gray-300">
+              Start your journey to civil service excellence
+            </p>
           </div>
         </div>
 
@@ -220,20 +246,45 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             {[
-              { name: 'fullName', icon: <User />, type: 'text', placeholder: 'Full Name' },
-              { name: 'email', icon: <Mail />, type: 'email', placeholder: 'Email Address' },
-              { name: 'pass', icon: <Lock />, type: 'password', placeholder: 'Create Password' },
-              { name: 'confpass', icon: <Lock />, type: 'password', placeholder: 'Confirm Password' },
-              { name: 'phone', icon: <Phone />, type: 'tel', placeholder: 'Phone Number' }
+              {
+                name: "fullName",
+                icon: <User />,
+                type: "text",
+                placeholder: "Full Name",
+              },
+              {
+                name: "email",
+                icon: <Mail />,
+                type: "email",
+                placeholder: "Email Address",
+              },
+              {
+                name: "pass",
+                icon: <Lock />,
+                type: "password",
+                placeholder: "Create Password",
+              },
+              {
+                name: "confpass",
+                icon: <Lock />,
+                type: "password",
+                placeholder: "Confirm Password",
+              },
+              {
+                name: "phone",
+                icon: <Phone />,
+                type: "tel",
+                placeholder: "Phone Number",
+              },
             ].map(({ name, icon, type, placeholder }) => {
-              const isPassword = name === 'pass' || name === 'confpass';
+              const isPassword = name === "pass" || name === "confpass";
               return (
                 <div key={name} className="relative">
                   <div className="absolute top-4 left-4 text-white">{icon}</div>
                   <input
-                    type={isPassword && showPassword[name] ? 'text' : type}
+                    type={isPassword && showPassword[name] ? "text" : type}
                     name={name}
-                    value={formData[name as keyof typeof formData] || ''}
+                    value={formData[name as keyof typeof formData] || ""}
                     onChange={handleInputChange}
                     required
                     className="w-full pl-12 pr-12 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition"
@@ -242,9 +293,15 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                   {isPassword && (
                     <div
                       className="absolute top-4 right-4 text-white cursor-pointer"
-                      onClick={() => togglePasswordVisibility(name as 'pass' | 'confpass')}
+                      onClick={() =>
+                        togglePasswordVisibility(name as "pass" | "confpass")
+                      }
                     >
-                      {showPassword[name] ? <EyeOff size={20} /> : <Eye size={20} />}
+                      {showPassword[name] ? (
+                        <EyeOff size={20} />
+                      ) : (
+                        <Eye size={20} />
+                      )}
                     </div>
                   )}
                 </div>
@@ -263,9 +320,20 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                 required
                 className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition appearance-none"
               >
-                <option value="" className="text-black">Select Course</option>
-                {['Computer Science', 'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Electronics Engineering', 'Other'].map(course => (
-                  <option key={course} value={course} className="text-black">{course}</option>
+                <option value="" className="text-black">
+                  Select Course
+                </option>
+                {[
+                  "Computer Science",
+                  "Mechanical Engineering",
+                  "Electrical Engineering",
+                  "Civil Engineering",
+                  "Electronics Engineering",
+                  "Other",
+                ].map((course) => (
+                  <option key={course} value={course} className="text-black">
+                    {course}
+                  </option>
                 ))}
               </select>
             </div>
@@ -282,10 +350,16 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                 required
                 className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition appearance-none"
               >
-                <option value="" className="text-black">Select Year</option>
-                {['1st Year', '2nd Year', '3rd Year', '4th Year', 'Alumni'].map(year => (
-                  <option key={year} value={year} className="text-black">{year}</option>
-                ))}
+                <option value="" className="text-black">
+                  Select Year
+                </option>
+                {["1st Year", "2nd Year", "3rd Year", "4th Year", "Alumni"].map(
+                  (year) => (
+                    <option key={year} value={year} className="text-black">
+                      {year}
+                    </option>
+                  ),
+                )}
               </select>
             </div>
 
@@ -314,15 +388,21 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                 <span>Registering...</span>
               </div>
             ) : (
-              'Join the Club'
+              "Join the Club"
             )}
           </button>
 
           {/* Terms */}
           <p className="text-center text-sm text-gray-400 mt-6">
-            By joining, you agree to our{' '}
-            <a href="#" className="text-white hover:underline">Terms of Service</a> and{' '}
-            <a href="#" className="text-white hover:underline">Privacy Policy</a>.
+            By joining, you agree to our{" "}
+            <a href="#" className="text-white hover:underline">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="#" className="text-white hover:underline">
+              Privacy Policy
+            </a>
+            .
           </p>
         </form>
       </div>

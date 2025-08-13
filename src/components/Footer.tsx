@@ -1,6 +1,14 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Mail,
+  Phone,
+  MapPin,
+} from "lucide-react";
 
 const Footer: React.FC = () => {
   const navigate = useNavigate();
@@ -22,25 +30,25 @@ const Footer: React.FC = () => {
 
   // Helper: jumps to ID after route has loaded
   const scrollToSection = (sectionId: string) => {
-    const id = sectionId.replace('#', '');
+    const id = sectionId.replace("#", "");
     setTimeout(() => {
       const element = document.getElementById(id);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({ behavior: "smooth" });
       }
     }, 80); // wait for DOM update if needed
   };
 
-  const handleLinkClick = (link: typeof quickLinks[0]) => {
+  const handleLinkClick = (link: (typeof quickLinks)[0]) => {
     if (link.type === "navigate") {
       navigate(link.href);
       return;
     }
     // Only "scroll" links below this point:
 
-    if (location.pathname !== '/') {
+    if (location.pathname !== "/") {
       // Jump to "/" first, then scroll after navigation
-      navigate('/');
+      navigate("/");
       // Scroll after a small delay to let the page mount
       setTimeout(() => scrollToSection(link.href), 120);
     } else {
@@ -56,15 +64,18 @@ const Footer: React.FC = () => {
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-neon-blue to-neon-purple rounded-full flex items-center justify-center">
-                <img 
-                  src="/logo.jpg" 
-                  alt="Club Logo" 
+                <img
+                  src="/logo.jpg"
+                  alt="Club Logo"
                   className="w-8 h-8 rounded-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
+                    target.style.display = "none";
                     // nextElementSibling could be null
-                    if (target.nextElementSibling) (target.nextElementSibling as HTMLElement).classList.remove('hidden');
+                    if (target.nextElementSibling)
+                      (
+                        target.nextElementSibling as HTMLElement
+                      ).classList.remove("hidden");
                   }}
                 />
                 <div className="hidden w-8 h-8 bg-neon-blue rounded-full"></div>
@@ -76,12 +87,13 @@ const Footer: React.FC = () => {
                 <p className="text-sm text-gray-400">TKMCE</p>
               </div>
             </div>
-            
+
             <p className="text-gray-300 leading-relaxed mb-6 max-w-md">
-              Empowering future civil servants with comprehensive guidance, resources, and community support. 
-              Join us in building a better tomorrow through public service excellence.
+              Empowering future civil servants with comprehensive guidance,
+              resources, and community support. Join us in building a better
+              tomorrow through public service excellence.
             </p>
-            
+
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-gray-300">
                 <Mail className="w-4 h-4 text-neon-blue" />
@@ -99,7 +111,9 @@ const Footer: React.FC = () => {
           </div>
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-6">Quick Links</h4>
+            <h4 className="text-lg font-semibold text-white mb-6">
+              Quick Links
+            </h4>
             <ul className="space-y-3">
               {quickLinks.map((link, index) => (
                 <li key={index}>
@@ -136,13 +150,22 @@ const Footer: React.FC = () => {
             © 2025 Civil Service Aspirants Club TKMCE. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300"
+            >
               Privacy Policy
             </a>
-            <a href="#" className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300"
+            >
               Terms of Service
             </a>
-            <a href="#" className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300"
+            >
               Cookie Policy
             </a>
           </div>

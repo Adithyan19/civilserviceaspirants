@@ -37,7 +37,10 @@ interface EventDetail {
   requirements?: string[];
 }
 
-const EventDetailPage: React.FC<EventDetailPageProps> = ({ onLoginClick, user }) => {
+const EventDetailPage: React.FC<EventDetailPageProps> = ({
+  onLoginClick,
+  user,
+}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState<EventDetail | null>(null);
@@ -60,12 +63,12 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ onLoginClick, user })
 
   const handleEnrollClick = () => {
     if (!user) {
-      console.log('Opening login modal...'); // Debug log
+      console.log("Opening login modal..."); // Debug log
       onLoginClick(); // This will open the login modal
       return;
     }
     // TODO: Add enrollment API call here when user is logged in
-    console.log('Enrolling user:', user.email);
+    console.log("Enrolling user:", user.email);
     // You can add your enrollment logic here
   };
 
@@ -84,7 +87,9 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ onLoginClick, user })
     return (
       <div className="min-h-screen bg-[#0f172a] flex flex-col justify-center items-center text-white">
         <h2 className="text-2xl font-bold mb-4">Event not found</h2>
-        <p className="text-gray-400 mb-6">The event you're looking for doesn't exist or has been removed.</p>
+        <p className="text-gray-400 mb-6">
+          The event you're looking for doesn't exist or has been removed.
+        </p>
         <button
           onClick={() => navigate("/events")}
           className="px-6 py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow transition-all duration-300"
@@ -118,7 +123,8 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ onLoginClick, user })
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = 'https://via.placeholder.com/800x400/1e293b/64748b?text=Event+Image';
+            target.src =
+              "https://via.placeholder.com/800x400/1e293b/64748b?text=Event+Image";
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
@@ -218,7 +224,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ onLoginClick, user })
                 {event.contact_1 && (
                   <div className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-neon-purple flex-shrink-0" />
-                    <a 
+                    <a
                       href={`tel:${event.contact_1}`}
                       className="text-gray-300 hover:text-neon-purple transition-colors"
                     >
@@ -229,7 +235,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ onLoginClick, user })
                 {event.contact_2 && (
                   <div className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-neon-purple flex-shrink-0" />
-                    <a 
+                    <a
                       href={`tel:${event.contact_2}`}
                       className="text-gray-300 hover:text-neon-purple transition-colors"
                     >
@@ -247,7 +253,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ onLoginClick, user })
             <p className="text-gray-300 text-sm mb-6">
               Secure your spot in this exclusive event. Limited seats available!
             </p>
-            
+
             {/* Show different states based on user login status */}
             {user ? (
               <div className="space-y-3">

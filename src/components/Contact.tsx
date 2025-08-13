@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import React, { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Mail, Phone, MapPin, Send } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,14 +12,15 @@ const Contact: React.FC = () => {
   const contactInfoRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
+    name: "",
+    email: "",
+    message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    gsap.fromTo(titleRef.current,
+    gsap.fromTo(
+      titleRef.current,
       { y: 50, opacity: 0 },
       {
         y: 0,
@@ -30,12 +31,13 @@ const Contact: React.FC = () => {
           trigger: titleRef.current,
           start: "top 80%",
           end: "bottom 20%",
-          toggleActions: "play none none reverse"
-        }
-      }
+          toggleActions: "play none none reverse",
+        },
+      },
     );
 
-    gsap.fromTo(formRef.current,
+    gsap.fromTo(
+      formRef.current,
       { x: -100, opacity: 0 },
       {
         x: 0,
@@ -46,12 +48,13 @@ const Contact: React.FC = () => {
           trigger: formRef.current,
           start: "top 80%",
           end: "bottom 20%",
-          toggleActions: "play none none reverse"
-        }
-      }
+          toggleActions: "play none none reverse",
+        },
+      },
     );
 
-    gsap.fromTo(contactInfoRef.current,
+    gsap.fromTo(
+      contactInfoRef.current,
       { x: 100, opacity: 0 },
       {
         x: 0,
@@ -62,21 +65,23 @@ const Contact: React.FC = () => {
           trigger: contactInfoRef.current,
           start: "top 80%",
           end: "bottom 20%",
-          toggleActions: "play none none reverse"
-        }
-      }
+          toggleActions: "play none none reverse",
+        },
+      },
     );
 
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -84,11 +89,11 @@ const Contact: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    setFormData({ name: '', email: '', message: '' });
+    setFormData({ name: "", email: "", message: "" });
     setIsSubmitting(false);
-    alert('Message sent successfully!');
+    alert("Message sent successfully!");
   };
 
   const contactInfo = [
@@ -96,24 +101,24 @@ const Contact: React.FC = () => {
       icon: <Mail className="w-6 h-6" />,
       title: "Email",
       content: "civilservants@tkmce.ac.in",
-      link: "mailto:civilservants@tkmce.ac.in"
+      link: "mailto:civilservants@tkmce.ac.in",
     },
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Phone",
       content: "+91 9876543210",
-      link: "tel:+919876543210"
+      link: "tel:+919876543210",
     },
     {
       icon: <MapPin className="w-6 h-6" />,
       title: "Location",
       content: "TKM College of Engineering, Kollam",
-      link: "https://maps.google.com"
-    }
+      link: "https://maps.google.com",
+    },
   ];
 
   return (
-    <section 
+    <section
       id="contact"
       ref={sectionRef}
       className="py-20 bg-gray-900 text-white relative overflow-hidden"
@@ -125,7 +130,7 @@ const Contact: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <h2 
+        <h2
           ref={titleRef}
           className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
@@ -202,10 +207,13 @@ const Contact: React.FC = () => {
           {/* Contact Information */}
           <div ref={contactInfoRef} className="space-y-8">
             <div>
-              <h3 className="text-2xl font-bold mb-6 text-white">Contact Information</h3>
+              <h3 className="text-2xl font-bold mb-6 text-white">
+                Contact Information
+              </h3>
               <p className="text-gray-400 leading-relaxed mb-8">
-                Ready to join our community or have questions about civil services preparation? 
-                We're here to help you on your journey to success.
+                Ready to join our community or have questions about civil
+                services preparation? We're here to help you on your journey to
+                success.
               </p>
             </div>
 
@@ -229,7 +237,6 @@ const Contact: React.FC = () => {
               ))}
             </div>
           </div>
-          
         </div>
       </div>
     </section>

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Edit2, Save, X, Eye, EyeOff } from 'lucide-react';
-import Footer from './Footer';
-import { api } from '../utils/api';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ArrowLeft, Edit2, Save, X, Eye, EyeOff } from "lucide-react";
+import Footer from "./Footer";
+import { api } from "../utils/api";
 
 interface User {
   id: string;
@@ -36,29 +36,29 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
     confirm: false,
   });
   const [editForm, setEditForm] = useState({
-    phone: '',
-    year: '',
+    phone: "",
+    year: "",
   });
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      alert('User not logged in or email missing!');
-      navigate('/');
+      alert("User not logged in or email missing!");
+      navigate("/");
       return;
     }
 
     const fetchUserDetails = async () => {
       setLoading(true);
       try {
-        const res = await api.get('/api/user', {
+        const res = await api.get("/api/user", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = res.data;
@@ -77,7 +77,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
           year: data.year,
         });
       } catch (err) {
-        alert('Failed to fetch user details.');
+        alert("Failed to fetch user details.");
       } finally {
         setLoading(false);
       }
@@ -91,11 +91,11 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const res = await api.put(
-        '/api/user/update',
+        "/api/user/update",
         { phone: editForm.phone, year: editForm.year },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (userDetails) {
@@ -106,9 +106,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
         });
       }
       setIsEditing(false);
-      alert('Profile updated successfully!');
+      alert("Profile updated successfully!");
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to update profile.');
+      alert(err.response?.data?.error || "Failed to update profile.");
     } finally {
       setSaving(false);
     }
@@ -118,35 +118,35 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
     e.preventDefault();
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert('New passwords do not match!');
+      alert("New passwords do not match!");
       return;
     }
     if (passwordForm.newPassword.length < 6) {
-      alert('Password must be at least 6 characters long!');
+      alert("Password must be at least 6 characters long!");
       return;
     }
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await api.post(
-        '/api/user/change-password',
+        "/api/user/change-password",
         {
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      alert('Password changed successfully!');
+      alert("Password changed successfully!");
       setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
       setIsChangingPassword(false);
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to change password');
+      alert(error.response?.data?.error || "Failed to change password");
     } finally {
       setSaving(false);
     }
@@ -171,7 +171,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-3 flex-wrap">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm
                               border border-white/20 rounded-full hover:border-neon-blue/50
                               hover:shadow-glow transition-all duration-300 group"
@@ -179,7 +179,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
               >
                 <ArrowLeft className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors" />
               </button>
-              <h1 className="text-xl sm:text-2xl font-bold text-white glow-text whitespace-nowrap">Account Details</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-white glow-text whitespace-nowrap">
+                Account Details
+              </h1>
             </div>
 
             <button
@@ -198,7 +200,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
           {/* Profile Overview */}
           <section className="glass-panel p-6 sm:p-8 rounded-2xl border border-neon-blue/20">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-              <h2 className="text-xl sm:text-2xl font-semibold text-white">Profile Information</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white">
+                Profile Information
+              </h2>
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
@@ -219,7 +223,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                     </label>
                     <input
                       type="text"
-                      value={userDetails?.fullName || ''}
+                      value={userDetails?.fullName || ""}
                       disabled
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
                     />
@@ -231,14 +235,16 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                     </label>
                     <input
                       type="text"
-                      value={userDetails?.course || ''}
+                      value={userDetails?.course || ""}
                       disabled
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Email Address (Cannot be changed)</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Email Address (Cannot be changed)
+                    </label>
                     <input
                       type="email"
                       value={email}
@@ -248,21 +254,35 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Phone Number
+                    </label>
                     <input
                       type="tel"
                       value={editForm.phone}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 bg-glass-bg border border-white/20 rounded-lg text-white focus:border-neon-blue focus:outline-none"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Year</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Year
+                    </label>
                     <select
                       value={editForm.year}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, year: e.target.value }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          year: e.target.value,
+                        }))
+                      }
                       required
                       className="
                         w-full px-4 py-3 
@@ -280,17 +300,47 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                       "
                       style={{
                         backgroundImage: `url("data:image/svg+xml,%3csvg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'right 0.75rem center',
-                        backgroundSize: '1em',
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 0.75rem center",
+                        backgroundSize: "1em",
                       }}
                     >
-                      <option className="bg-[#0f172a] text-white" value="1st Year">1st Year</option>
-                      <option className="bg-[#0f172a] text-white" value="2nd Year">2nd Year</option>
-                      <option className="bg-[#0f172a] text-white" value="3rd Year">3rd Year</option>
-                      <option className="bg-[#0f172a] text-white" value="4th Year">4th Year</option>
-                      <option className="bg-[#0f172a] text-white" value="5th Year">5th Year</option>
-                      <option className="bg-[#0f172a] text-white" value="Alumni">Alumni</option>
+                      <option
+                        className="bg-[#0f172a] text-white"
+                        value="1st Year"
+                      >
+                        1st Year
+                      </option>
+                      <option
+                        className="bg-[#0f172a] text-white"
+                        value="2nd Year"
+                      >
+                        2nd Year
+                      </option>
+                      <option
+                        className="bg-[#0f172a] text-white"
+                        value="3rd Year"
+                      >
+                        3rd Year
+                      </option>
+                      <option
+                        className="bg-[#0f172a] text-white"
+                        value="4th Year"
+                      >
+                        4th Year
+                      </option>
+                      <option
+                        className="bg-[#0f172a] text-white"
+                        value="5th Year"
+                      >
+                        5th Year
+                      </option>
+                      <option
+                        className="bg-[#0f172a] text-white"
+                        value="Alumni"
+                      >
+                        Alumni
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -326,29 +376,43 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm sm:text-base">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Full Name
+                  </label>
                   <p className="text-white">{userDetails?.fullName}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Email
+                  </label>
                   <p className="text-white">{email}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Phone
+                  </label>
                   <p className="text-white">{userDetails?.phone}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Course</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Course
+                  </label>
                   <p className="text-white">{userDetails?.course}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Year</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Year
+                  </label>
                   <p className="text-white">{userDetails?.year}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Member Since</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Member Since
+                  </label>
                   <p className="text-white">
-                    {new Date(userDetails?.updatedAt || '').toLocaleDateString()}
+                    {new Date(
+                      userDetails?.updatedAt || "",
+                    ).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -358,7 +422,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
           {/* Change Password Section */}
           <section className="glass-panel p-6 sm:p-8 rounded-2xl border border-neon-purple/20">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-              <h2 className="text-xl sm:text-2xl font-semibold text-white">Security Settings</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white">
+                Security Settings
+              </h2>
               {!isChangingPassword && (
                 <button
                   onClick={() => setIsChangingPassword(true)}
@@ -371,13 +437,16 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
             </div>
 
             {isChangingPassword ? (
-              <form onSubmit={handlePasswordChange} className="space-y-6 max-w-md">
+              <form
+                onSubmit={handlePasswordChange}
+                className="space-y-6 max-w-md"
+              >
                 <div className="space-y-4">
-                  {['current', 'new', 'confirm'].map((field) => {
+                  {["current", "new", "confirm"].map((field) => {
                     const labelMap = {
-                      current: 'Current Password',
-                      new: 'New Password',
-                      confirm: 'Confirm New Password',
+                      current: "Current Password",
+                      new: "New Password",
+                      confirm: "Confirm New Password",
                     };
                     const passwordValueMap = {
                       current: passwordForm.currentPassword,
@@ -396,8 +465,18 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                           {labelMap[field as keyof typeof labelMap]}
                         </label>
                         <input
-                          type={showPasswordMap[field as keyof typeof showPasswordMap] ? 'text' : 'password'}
-                          value={passwordValueMap[field as keyof typeof passwordValueMap]}
+                          type={
+                            showPasswordMap[
+                              field as keyof typeof showPasswordMap
+                            ]
+                              ? "text"
+                              : "password"
+                          }
+                          value={
+                            passwordValueMap[
+                              field as keyof typeof passwordValueMap
+                            ]
+                          }
                           onChange={(e) =>
                             setPasswordForm((prev) => ({
                               ...prev,
@@ -406,7 +485,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                           }
                           className="w-full px-4 py-3 pr-12 bg-glass-bg border border-white/20 rounded-lg text-white focus:border-neon-purple focus:outline-none"
                           required
-                          minLength={field === 'current' ? undefined : 6}
+                          minLength={field === "current" ? undefined : 6}
                           aria-required="true"
                           autoComplete="off"
                         />
@@ -419,9 +498,17 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                             }))
                           }
                           className="absolute right-3 top-9 text-gray-400 hover:text-white focus:outline-none"
-                          aria-label={showPasswordMap[field as keyof typeof showPasswordMap] ? 'Hide password' : 'Show password'}
+                          aria-label={
+                            showPasswordMap[
+                              field as keyof typeof showPasswordMap
+                            ]
+                              ? "Hide password"
+                              : "Show password"
+                          }
                         >
-                          {showPasswordMap[field as keyof typeof showPasswordMap] ? (
+                          {showPasswordMap[
+                            field as keyof typeof showPasswordMap
+                          ] ? (
                             <EyeOff className="w-5 h-5" />
                           ) : (
                             <Eye className="w-5 h-5" />
@@ -455,9 +542,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                     onClick={() => {
                       setIsChangingPassword(false);
                       setPasswordForm({
-                        currentPassword: '',
-                        newPassword: '',
-                        confirmPassword: '',
+                        currentPassword: "",
+                        newPassword: "",
+                        confirmPassword: "",
                       });
                     }}
                     className="flex items-center justify-center space-x-2 px-6 py-3 bg-gray-600/20 text-gray-300 rounded-lg hover:bg-gray-600/30 transition-colors w-full sm:w-auto"
@@ -470,11 +557,14 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
             ) : (
               <div>
                 <p className="text-gray-300 mb-4 max-w-md">
-                  Keep your account secure by using a strong password and changing it regularly.
+                  Keep your account secure by using a strong password and
+                  changing it regularly.
                 </p>
                 <div className="text-sm text-gray-400 max-w-md space-y-1">
                   <p>• Password should be at least 6 characters long</p>
-                  <p>• Include a mix of letters, numbers, and special characters</p>
+                  <p>
+                    • Include a mix of letters, numbers, and special characters
+                  </p>
                   <p>• Don't use the same password for multiple accounts</p>
                 </div>
               </div>

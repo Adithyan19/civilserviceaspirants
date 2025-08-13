@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { gsap } from 'gsap';
-import { useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import React, { useEffect, useState, useRef } from "react";
+import { gsap } from "gsap";
+import { useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 
 interface HeaderProps {
   onSignupClick: () => void;
@@ -29,31 +29,31 @@ const Header: React.FC<HeaderProps> = ({
     tl.fromTo(
       headerRef.current,
       { y: -100, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
+      { y: 0, opacity: 1, duration: 1, ease: "power3.out" },
     )
       .fromTo(
         logoRef.current,
         { x: -50, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.8, ease: 'power2.out' },
-        '-=0.5'
+        { x: 0, opacity: 1, duration: 0.8, ease: "power2.out" },
+        "-=0.5",
       )
       .fromTo(
         navRef.current?.children || [],
         { y: -20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power2.out' },
-        '-=0.6'
+        { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out" },
+        "-=0.6",
       )
       .fromTo(
         buttonRef.current,
         { scale: 0, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' },
-        '-=0.3'
+        { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" },
+        "-=0.3",
       );
   }, []);
 
   const scrollToSection = (sectionId: string) => {
-    document.body.style.overflow = 'unset';
-    document.documentElement.style.overflow = 'unset';
+    document.body.style.overflow = "unset";
+    document.documentElement.style.overflow = "unset";
 
     setIsMobileMenuOpen(false);
 
@@ -65,10 +65,10 @@ const Header: React.FC<HeaderProps> = ({
 
         window.scrollTo({
           top: elementPosition,
-          behavior: 'smooth',
+          behavior: "smooth",
         });
 
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
       } else {
         console.warn(`Element with ID "${sectionId}" not found`);
       }
@@ -77,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const handleEventsClick = () => {
     setIsMobileMenuOpen(false);
-    navigate('/events');
+    navigate("/events");
   };
 
   return (
@@ -99,9 +99,9 @@ const Header: React.FC<HeaderProps> = ({
                 className="w-8 h-8 rounded-full object-cover"
                 onError={(e) => {
                   const target = e.currentTarget;
-                  target.style.display = 'none';
+                  target.style.display = "none";
                   const fallback = target.nextElementSibling;
-                  if (fallback) fallback.classList.remove('hidden');
+                  if (fallback) fallback.classList.remove("hidden");
                 }}
               />
               <div className="hidden w-8 h-8 bg-white rounded-full" />
@@ -123,13 +123,13 @@ const Header: React.FC<HeaderProps> = ({
             aria-label="Primary Navigation"
           >
             <button
-              onClick={() => scrollToSection('hero')}
+              onClick={() => scrollToSection("hero")}
               className="text-white text-sm sm:text-base hover:text-gray-300 transition-colors duration-300 rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-1"
             >
               Home
             </button>
             <button
-              onClick={() => scrollToSection('about')}
+              onClick={() => scrollToSection("about")}
               className="text-white text-sm sm:text-base hover:text-gray-300 transition-colors duration-300 rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-1"
             >
               About
@@ -141,7 +141,7 @@ const Header: React.FC<HeaderProps> = ({
               Events
             </button>
             <button
-              onClick={() => scrollToSection('contact')}
+              onClick={() => scrollToSection("contact")}
               className="text-white text-sm sm:text-base hover:text-gray-300 transition-colors duration-300 rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-1"
             >
               Contact
@@ -172,7 +172,7 @@ const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => setIsMobileMenuOpen((v) => !v)}
             className="md:hidden text-white p-2 rounded-md hover:text-neon-blue transition duration-300 focus:outline-none focus:ring-2 focus:ring-neon-blue z-50"
-            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -187,13 +187,13 @@ const Header: React.FC<HeaderProps> = ({
               aria-label="Mobile Navigation"
             >
               <button
-                onClick={() => scrollToSection('hero')}
+                onClick={() => scrollToSection("hero")}
                 className="text-left text-white text-base hover:text-neon-blue transition-colors rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-2"
               >
                 Home
               </button>
               <button
-                onClick={() => scrollToSection('about')}
+                onClick={() => scrollToSection("about")}
                 className="text-left text-white text-base hover:text-neon-blue transition-colors rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-2"
               >
                 About
@@ -205,7 +205,7 @@ const Header: React.FC<HeaderProps> = ({
                 Events
               </button>
               <button
-                onClick={() => scrollToSection('contact')}
+                onClick={() => scrollToSection("contact")}
                 className="text-left text-white text-base hover:text-neon-blue transition-colors rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-2"
               >
                 Contact

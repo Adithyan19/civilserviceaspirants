@@ -23,7 +23,7 @@ const TeamPage: React.FC = () => {
         opacity: 1,
         duration: 0.8,
         ease: "power3.out",
-      }
+      },
     );
 
     // Animate cards entrance
@@ -37,7 +37,7 @@ const TeamPage: React.FC = () => {
         stagger: 0.1,
         delay: 0.3,
         ease: "power2.out",
-      }
+      },
     );
   }, []);
 
@@ -145,7 +145,8 @@ const TeamPage: React.FC = () => {
               Meet the Execom Committee
             </h2>
             <p className="text-gray-400">
-              Our dedicated team working together to empower future civil servants and build a strong community at TKMCE.
+              Our dedicated team working together to empower future civil
+              servants and build a strong community at TKMCE.
             </p>
           </div>
 
@@ -176,7 +177,9 @@ const TeamPage: React.FC = () => {
                 <h3 className="mt-5 text-xl font-semibold text-white hover:text-neon-blue truncate">
                   {member.name}
                 </h3>
-                <p className="mt-1 text-sm text-gray-400 truncate">{member.position}</p>
+                <p className="mt-1 text-sm text-gray-400 truncate">
+                  {member.position}
+                </p>
 
                 <div className="mt-4 flex flex-col items-center gap-2 text-gray-400 text-sm">
                   <a
@@ -187,7 +190,9 @@ const TeamPage: React.FC = () => {
                     aria-label={`Email ${member.name}`}
                   >
                     <Mail className="w-5 h-5 flex-shrink-0" />
-                    <span className="truncate max-w-[125px]">{member.email}</span>
+                    <span className="truncate max-w-[125px]">
+                      {member.email}
+                    </span>
                   </a>
                   <a
                     href={`tel:${member.phone}`}

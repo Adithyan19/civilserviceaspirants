@@ -33,13 +33,18 @@ interface HomeEventsPageProps {
   onLoginClick: () => void;
 }
 
-const HomeEventsPage: React.FC<HomeEventsPageProps> = ({ user: _user, onLoginClick }) => {
+const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
+  user: _user,
+  onLoginClick,
+}) => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [errorEvents, setErrorEvents] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterMode, setFilterMode] = useState<"all" | "online" | "offline" | "hybrid">("all");
+  const [filterMode, setFilterMode] = useState<
+    "all" | "online" | "offline" | "hybrid"
+  >("all");
 
   useEffect(() => {
     fetchEvents();
@@ -50,17 +55,24 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({ user: _user, onLoginCli
       gsap.fromTo(
         ".events-header",
         { y: -50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
+        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
       );
       gsap.fromTo(
         ".events-content",
         { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, delay: 0.3, ease: "power2.out" }
+        { y: 0, opacity: 1, duration: 0.6, delay: 0.3, ease: "power2.out" },
       );
       gsap.fromTo(
         ".event-card",
         { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, delay: 0.5, ease: "power2.out" }
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.1,
+          delay: 0.5,
+          ease: "power2.out",
+        },
       );
     }
   }, [loadingEvents]);
@@ -106,7 +118,8 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({ user: _user, onLoginCli
     const matchesSearch =
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterMode === "all" || event.mode.toLowerCase() === filterMode;
+    const matchesFilter =
+      filterMode === "all" || event.mode.toLowerCase() === filterMode;
     return matchesSearch && matchesFilter;
   });
 
@@ -157,10 +170,18 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({ user: _user, onLoginCli
                 onChange={(e) => setFilterMode(e.target.value as any)}
                 className="pl-10 pr-8 py-2 bg-glass-bg border border-white/20 rounded-lg text-white appearance-none"
               >
-                <option className="bg-[#0f172a] text-white" value="all">All Events</option>
-                <option className="bg-[#0f172a] text-white" value="online">Online</option>
-                <option className="bg-[#0f172a] text-white" value="offline">Offline</option>
-                <option className="bg-[#0f172a] text-white" value="hybrid">Hybrid</option>
+                <option className="bg-[#0f172a] text-white" value="all">
+                  All Events
+                </option>
+                <option className="bg-[#0f172a] text-white" value="online">
+                  Online
+                </option>
+                <option className="bg-[#0f172a] text-white" value="offline">
+                  Offline
+                </option>
+                <option className="bg-[#0f172a] text-white" value="hybrid">
+                  Hybrid
+                </option>
               </select>
             </div>
           </div>
@@ -205,15 +226,15 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({ user: _user, onLoginCli
                     {event.description}
                   </p>
                   <div className="space-y-2 mb-4 text-gray-400 text-sm">
-                   <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                        {new Date(event.date).toLocaleDateString('en-US', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        {new Date(event.date).toLocaleDateString("en-US", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
                         })}
-                    </span>
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4" />
@@ -225,7 +246,10 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({ user: _user, onLoginCli
                     </div>
                     <div className="flex items-center space-x-2">
                       <Users className="w-4 h-4" />
-                      <span>{event.attendees ?? "?"}/{event.max_participants} participants</span>
+                      <span>
+                        {event.attendees ?? "?"}/{event.max_participants}{" "}
+                        participants
+                      </span>
                     </div>
                   </div>
                 </div>

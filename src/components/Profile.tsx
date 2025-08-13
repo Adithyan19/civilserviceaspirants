@@ -170,7 +170,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout }) => {
                       </h4>
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${getStatusColor(
-                          event.date
+                          event.date,
                         )}`}
                       >
                         {new Date(event.date) > new Date()

@@ -14,6 +14,7 @@ A modern, immersive website for the Civil Servants Club at TKM College of Engine
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React 18** - Modern React with hooks and functional components
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first CSS framework with custom configurations
@@ -22,6 +23,7 @@ A modern, immersive website for the Civil Servants Club at TKM College of Engine
 - **Vite** - Fast build tool and development server
 
 ### Backend
+
 - **Node.js** - JavaScript runtime
 - **Express.js** - Web application framework
 - **CORS** - Cross-origin resource sharing
@@ -72,56 +74,62 @@ civil-servants-club/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - npm or yarn package manager
 
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd civil-servants-club
-   ```
+
+    ```bash
+    git clone <repository-url>
+    cd civil-servants-club
+    ```
 
 2. **Install frontend dependencies**
-   ```bash
-   npm install
-   ```
+
+    ```bash
+    npm install
+    ```
 
 3. **Install backend dependencies**
-   ```bash
-   cd server
-   npm install
-   cd ..
-   ```
+
+    ```bash
+    cd server
+    npm install
+    cd ..
+    ```
 
 4. **Set up environment variables**
-   ```bash
-   cd server
-   cp .env.example .env
-   # Edit .env with your configuration
-   cd ..
-   ```
+    ```bash
+    cd server
+    cp .env.example .env
+    # Edit .env with your configuration
+    cd ..
+    ```
 
 ### Development
 
 1. **Start both frontend and backend**
-   ```bash
-   npm run dev:full
-   ```
+
+    ```bash
+    npm run dev:full
+    ```
 
 2. **Or start them separately**
-   ```bash
-   # Frontend (Terminal 1)
-   npm run dev
-   
-   # Backend (Terminal 2)
-   npm run server
-   ```
+
+    ```bash
+    # Frontend (Terminal 1)
+    npm run dev
+
+    # Backend (Terminal 2)
+    npm run server
+    ```
 
 3. **Open your browser**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:5000
+    - Frontend: http://localhost:5173
+    - Backend API: http://localhost:5000
 
 ### Building for Production
 
@@ -132,30 +140,35 @@ npm run build
 ## 🎯 Key Components
 
 ### Header
+
 - Sticky navigation with glassmorphism effect
 - Animated logo and club name
 - Responsive mobile menu
 - Smooth scroll navigation
 
 ### Hero Section
+
 - Full-screen immersive design
 - Animated text with gradient effects
 - Floating logo with orbital elements
 - Call-to-action button
 
 ### About Section
+
 - Feature cards with hover effects
 - Image grid with sample event photos
 - Scroll-triggered animations
 - Mission statement highlight
 
 ### Contact Section
+
 - Floating label contact form
 - Real-time validation
 - Glowing input borders
 - Contact information cards
 
 ### Signup Modal
+
 - Glassmorphism design
 - Multi-step form with validation
 - Smooth entrance/exit animations
@@ -164,21 +177,27 @@ npm run build
 ## 🎨 Customization
 
 ### Colors
+
 The color palette is defined in `tailwind.config.js`:
+
 - `neon-blue`: #00f5ff
 - `neon-purple`: #bf00ff
 - `electric-blue`: #0080ff
 - `dark-bg`: #0a0a0a
 
 ### Animations
+
 GSAP animations are configured in `src/utils/animations.ts`:
+
 - Entrance animations
 - Scroll triggers
 - Hover effects
 - Parallax scrolling
 
 ### Styling
+
 Custom styles are in `src/styles/locomotive.css`:
+
 - Smooth scrolling
 - Glow effects
 - Glass morphism
@@ -187,6 +206,7 @@ Custom styles are in `src/styles/locomotive.css`:
 ## 🔧 API Endpoints
 
 ### User Registration
+
 ```
 POST /api/signup
 Content-Type: application/json
@@ -202,6 +222,7 @@ Content-Type: application/json
 ```
 
 ### Contact Form
+
 ```
 POST /api/contact
 Content-Type: application/json
@@ -214,6 +235,7 @@ Content-Type: application/json
 ```
 
 ### Newsletter Subscription
+
 ```
 POST /api/newsletter
 Content-Type: application/json
@@ -235,10 +257,12 @@ Content-Type: application/json
 ## 🚀 Deployment
 
 ### Frontend (Netlify/Vercel)
+
 1. Build the project: `npm run build`
 2. Deploy the `dist` folder to your hosting platform
 
 ### Backend (Heroku/Railway/DigitalOcean)
+
 1. Set up environment variables
 2. Deploy the `server` folder
 3. Update CORS settings for production domain
@@ -258,6 +282,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 👥 Team
 
 **Civil Servants Club TKMCE**
+
 - Email: civilservants@tkmce.ac.in
 - Phone: +91 9876543210
 - Location: TKM College of Engineering, Kollam

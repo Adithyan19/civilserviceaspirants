@@ -51,10 +51,9 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
       if (!token) return;
 
       try {
-        const res = await api.get(
-          `/api/check-enrollment/${id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await api.get(`/api/check-enrollment/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.data.enrolled) setIsEnrolled(true);
       } catch {
         console.error("Failed to check enrollment status");
@@ -83,9 +82,7 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get<EventDetails>(
-          `/api/getevent/${id}`
-        );
+        const res = await api.get<EventDetails>(`/api/getevent/${id}`);
         setEvent(res.data);
       } catch (err) {
         console.error("Failed to load event");
@@ -95,70 +92,75 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
     })();
   }, [id]);
 
-const handleEnroll = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to enroll for an event.");
-      return;
-    }
-
-    console.log("📤 Sending enrollment request for event:", id);
-
-    const res = await api.post(
-      "/api/enroll-event",
-      { eventId: id },
-      {
-        headers: { Authorization: `Bearer ${token}` },
+  const handleEnroll = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You must be logged in to enroll for an event.");
+        return;
       }
-    );
 
-    console.log("✅ Enrollment Response:", res.data);
+      console.log("📤 Sending enrollment request for event:", id);
 
-    if (res.data.success) {
-      alert("Enrolled successfully!");
-      setEvent((prev) =>
-        prev ? { ...prev, max_participants: prev.max_participants - 1 } : prev
+      const res = await api.post(
+        "/api/enroll-event",
+        { eventId: id },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
-      setIsEnrolled(true);
-      setShowEnrollModal(false);
-    }
-  } catch (error: any) {
-    console.error("❌ Enrollment request failed:", error);
 
-    if (error.response) {
-      // Server responded with an error
-      console.error("🔍 Server Response Data:", error.response.data);
-      console.error("🌐 Status Code:", error.response.status);
-      console.error("📩 Response Headers:", error.response.headers);
+      console.log("✅ Enrollment Response:", res.data);
 
-      const errorMessage = error.response.data?.error || "Error enrolling. Please try again later.";
-      
-      // Handle specific error cases
-      if (errorMessage.includes("already enrolled")) {
-        alert("You are already enrolled in this event.");
+      if (res.data.success) {
+        alert("Enrolled successfully!");
+        setEvent((prev) =>
+          prev
+            ? { ...prev, max_participants: prev.max_participants - 1 }
+            : prev,
+        );
         setIsEnrolled(true);
         setShowEnrollModal(false);
-      } else if (errorMessage.includes("No slots left")) {
-        alert("Sorry, no slots are available for this event.");
-        // Optionally update the UI to show event is full
-        setEvent((prev) =>
-          prev ? { ...prev, max_participants: 0 } : prev
-        );
-      } else {
-        alert(errorMessage);
       }
-    } else if (error.request) {
-      // Request made but no server response
-      console.error("⚠️ No Response received from the server:", error.request);
-      alert("No response from the server. Please check your connection.");
-    } else {
-      // Something else happened while setting up the request
-      console.error("💥 Axios setup error:", error.message);
-      alert("Unexpected error occurred. Please try again later.");
+    } catch (error: any) {
+      console.error("❌ Enrollment request failed:", error);
+
+      if (error.response) {
+        // Server responded with an error
+        console.error("🔍 Server Response Data:", error.response.data);
+        console.error("🌐 Status Code:", error.response.status);
+        console.error("📩 Response Headers:", error.response.headers);
+
+        const errorMessage =
+          error.response.data?.error ||
+          "Error enrolling. Please try again later.";
+
+        // Handle specific error cases
+        if (errorMessage.includes("already enrolled")) {
+          alert("You are already enrolled in this event.");
+          setIsEnrolled(true);
+          setShowEnrollModal(false);
+        } else if (errorMessage.includes("No slots left")) {
+          alert("Sorry, no slots are available for this event.");
+          // Optionally update the UI to show event is full
+          setEvent((prev) => (prev ? { ...prev, max_participants: 0 } : prev));
+        } else {
+          alert(errorMessage);
+        }
+      } else if (error.request) {
+        // Request made but no server response
+        console.error(
+          "⚠️ No Response received from the server:",
+          error.request,
+        );
+        alert("No response from the server. Please check your connection.");
+      } else {
+        // Something else happened while setting up the request
+        console.error("💥 Axios setup error:", error.message);
+        alert("Unexpected error occurred. Please try again later.");
+      }
     }
-  }
-};
+  };
 
   const handleBackToDashboard = () => {
     navigate("/dashboard");
@@ -175,11 +177,11 @@ const handleEnroll = async () => {
 
   const getModeIcon = (mode: string) => {
     switch (mode?.toLowerCase()) {
-      case 'online':
+      case "online":
         return <Globe className="w-5 h-5 text-green-400" />;
-      case 'offline':
+      case "offline":
         return <MapPin className="w-5 h-5 text-blue-400" />;
-      case 'hybrid':
+      case "hybrid":
         return <Globe className="w-5 h-5 text-purple-400" />;
       default:
         return <MapPin className="w-5 h-5 text-gray-400" />;
@@ -188,14 +190,14 @@ const handleEnroll = async () => {
 
   const getModeColor = (mode: string) => {
     switch (mode?.toLowerCase()) {
-      case 'online':
-        return 'bg-green-400/20 text-green-400 border-green-400/30';
-      case 'offline':
-        return 'bg-blue-400/20 text-blue-400 border-blue-400/30';
-      case 'hybrid':
-        return 'bg-purple-400/20 text-purple-400 border-purple-400/30';
+      case "online":
+        return "bg-green-400/20 text-green-400 border-green-400/30";
+      case "offline":
+        return "bg-blue-400/20 text-blue-400 border-blue-400/30";
+      case "hybrid":
+        return "bg-purple-400/20 text-purple-400 border-purple-400/30";
       default:
-        return 'bg-gray-400/20 text-gray-400 border-gray-400/30';
+        return "bg-gray-400/20 text-gray-400 border-gray-400/30";
     }
   };
 
@@ -214,7 +216,9 @@ const handleEnroll = async () => {
     return (
       <div className="bg-[#0f172a] min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Event Not Found</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Event Not Found
+          </h2>
           <button
             onClick={handleBackToDashboard}
             className="px-6 py-3 bg-neon-blue text-white rounded-lg hover:bg-neon-blue/80 transition-colors"
@@ -293,7 +297,9 @@ const handleEnroll = async () => {
                       <button
                         onClick={() => {
                           setShowUserDropdown(false);
-                          navigate("/account", { state: { email: user?.email } });
+                          navigate("/account", {
+                            state: { email: user?.email },
+                          });
                         }}
                         className="w-full px-6 py-3 text-left text-white hover:bg-white/10 flex items-center space-x-3"
                       >
@@ -346,22 +352,23 @@ const handleEnroll = async () => {
       <main className="text-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 py-8">
           <div className="max-w-4xl mx-auto">
-            
             {/* Hero Section */}
             <div className="glass-panel rounded-2xl border border-neon-blue/20 overflow-hidden mb-8">
               <div className="relative h-64 md:h-80">
-                <img 
+                <img
                   src={event.img_url}
                   alt={event.title}
                   className="w-full h-full object-cover"
                 />
-                
+
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                
+
                 {/* Event Title */}
                 <div className="absolute bottom-6 left-6 right-6">
-                  <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${getModeColor(event.mode)} border backdrop-blur-sm mb-4`}>
+                  <div
+                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${getModeColor(event.mode)} border backdrop-blur-sm mb-4`}
+                  >
                     {getModeIcon(event.mode)}
                     <span className="capitalize">{event.mode} Event</span>
                   </div>
@@ -374,7 +381,9 @@ const handleEnroll = async () => {
 
             {/* About Event */}
             <div className="glass-panel p-6 rounded-2xl border border-white/10 mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">About This Event</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                About This Event
+              </h2>
               <p className="text-gray-300 leading-relaxed whitespace-pre-line break-words">
                 {event.description}
               </p>
@@ -382,16 +391,20 @@ const handleEnroll = async () => {
 
             {/* Event Information */}
             <div className="glass-panel p-6 rounded-2xl border border-neon-blue/20 mb-8">
-              <h3 className="text-xl font-bold text-white mb-6">Event Information</h3>
+              <h3 className="text-xl font-bold text-white mb-6">
+                Event Information
+              </h3>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Calendar className="w-5 h-5 " />
                   <div>
-                    <p className="text-white font-medium">{new Date(event.date).toLocaleDateString()}</p>
+                    <p className="text-white font-medium">
+                      {new Date(event.date).toLocaleDateString()}
+                    </p>
                     <p className="text-gray-400 text-sm">Date</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <Clock className="w-5 h-5 " />
                   <div>
@@ -399,7 +412,7 @@ const handleEnroll = async () => {
                     <p className="text-gray-400 text-sm">Time</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <MapPin className="w-5 h-5 " />
                   <div>
@@ -407,15 +420,17 @@ const handleEnroll = async () => {
                     <p className="text-gray-400 text-sm">Venue</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <Users className="w-5 h-5 " />
                   <div>
-                    <p className="text-white font-medium">{event.max_participants}</p>
+                    <p className="text-white font-medium">
+                      {event.max_participants}
+                    </p>
                     <p className="text-gray-400 text-sm">Slots Available</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <Phone className="w-5 h-5 " />
                   <div>
@@ -423,12 +438,14 @@ const handleEnroll = async () => {
                     <p className="text-gray-400 text-sm">Contact 1</p>
                   </div>
                 </div>
-                
+
                 {event.contact_2 && (
                   <div className="flex items-center space-x-3">
                     <Phone className="w-5 h-5 " />
                     <div>
-                      <p className="text-white font-medium">{event.contact_2}</p>
+                      <p className="text-white font-medium">
+                        {event.contact_2}
+                      </p>
                       <p className="text-gray-400 text-sm">Contact 2</p>
                     </div>
                   </div>
@@ -439,20 +456,24 @@ const handleEnroll = async () => {
             {/* Enrollment Section */}
             {!isEnrolled && event.max_participants > 0 && (
               <div className="glass-panel p-6 rounded-2xl border border-neon-purple/20 mb-8">
-                <h3 className="text-xl font-bold text-white mb-4">Ready to Join?</h3>
+                <h3 className="text-xl font-bold text-white mb-4">
+                  Ready to Join?
+                </h3>
                 <p className="text-gray-300 text-sm mb-6">
-                  Secure your spot in this exclusive event. Limited seats available!
+                  Secure your spot in this exclusive event. Limited seats
+                  available!
                 </p>
-                
+
                 <button
                   onClick={() => setShowEnrollModal(true)}
                   className="w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow transition-all duration-300 transform hover:scale-105"
                 >
                   Enroll Now
                 </button>
-                
+
                 <p className="text-xs text-gray-400 mt-3 text-center">
-                  {event.max_participants} spots remaining • Click to secure your participation
+                  {event.max_participants} spots remaining • Click to secure
+                  your participation
                 </p>
               </div>
             )}
@@ -460,13 +481,15 @@ const handleEnroll = async () => {
             {/* Success State */}
             {isEnrolled && (
               <div className="glass-panel p-6 rounded-2xl border border-green-400/20 mb-8">
-                <h3 className="text-xl font-bold text-white mb-4">✅ Enrolled Successfully!</h3>
+                <h3 className="text-xl font-bold text-white mb-4">
+                  ✅ Enrolled Successfully!
+                </h3>
                 <p className="text-gray-300 text-sm">
-                  You're all set for this event. Check your email for confirmation details.
+                  You're all set for this event. Check your email for
+                  confirmation details.
                 </p>
               </div>
             )}
-
           </div>
         </div>
 
@@ -475,13 +498,13 @@ const handleEnroll = async () => {
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
             <div className="bg-gray-800/95 backdrop-blur-md rounded-2xl max-w-md w-full p-6 border border-white/20">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold mb-2 text-white">Confirm Enrollment</h2>
+                <h2 className="text-xl font-semibold mb-2 text-white">
+                  Confirm Enrollment
+                </h2>
                 <p className="text-gray-400">
                   Are you sure you want to enroll in this event?
                 </p>
-                <p className="text-neon-blue font-medium mt-2">
-                  {event.title}
-                </p>
+                <p className="text-neon-blue font-medium mt-2">{event.title}</p>
               </div>
               <div className="flex flex-col sm:flex-row justify-center gap-3 mt-6">
                 <button

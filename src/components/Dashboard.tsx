@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useNavigate } from 'react-router-dom';
-import Footer from './Footer';
+import React, { useEffect, useState, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useNavigate } from "react-router-dom";
+import Footer from "./Footer";
 import {
   Calendar,
   FileText,
@@ -16,16 +16,20 @@ import {
   LogOut,
   Menu,
   X,
-  Search, 
+  Search,
   Filter,
-} from 'lucide-react';
-import { api } from '../utils/api';
+} from "lucide-react";
+import { api } from "../utils/api";
 
 gsap.registerPlugin(ScrollTrigger);
 
 interface DashboardProps {
   user: { email: string; name: string } | null;
-  onOpenPDF: (url: string, title: string, type: 'newspaper' | 'question') => void;
+  onOpenPDF: (
+    url: string,
+    title: string,
+    type: "newspaper" | "question",
+  ) => void;
   onLogout?: () => void;
 }
 
@@ -68,7 +72,7 @@ interface EventItem {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
-  const [activeSection, setActiveSection] = useState('events');
+  const [activeSection, setActiveSection] = useState("events");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -89,12 +93,21 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [errorEvents, setErrorEvents] = useState<string | null>(null);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('TKMCE');
-  const categories = ['Global', 'India', 'Kerala', 'TKMCE', 'Placement', 'UPSC'];
+  const [selectedCategory, setSelectedCategory] = useState<string>("TKMCE");
+  const categories = [
+    "Global",
+    "India",
+    "Kerala",
+    "TKMCE",
+    "Placement",
+    "UPSC",
+  ];
 
   // Search & Filter states for EVENTS
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterMode, setFilterMode] = useState<'all' | 'online' | 'offline' | 'hybrid'>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterMode, setFilterMode] = useState<
+    "all" | "online" | "offline" | "hybrid"
+  >("all");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -110,30 +123,30 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showUserDropdown]);
 
   useEffect(() => {
     gsap.fromTo(
-      '.dashboard-header',
+      ".dashboard-header",
       { y: -50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }
+      { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
     );
     gsap.fromTo(
-      '.dashboard-nav',
+      ".dashboard-nav",
       { y: 30, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.6, delay: 0.2 }
+      { y: 0, opacity: 1, duration: 0.6, delay: 0.2 },
     );
     gsap.fromTo(
-      '.dashboard-content',
+      ".dashboard-content",
       { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.8, delay: 0.4 }
+      { y: 0, opacity: 1, duration: 0.8, delay: 0.4 },
     );
     gsap.fromTo(
-      '.dashboard-card',
+      ".dashboard-card",
       { y: 30, opacity: 0 },
       {
         y: 0,
@@ -141,33 +154,33 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         duration: 0.6,
         stagger: 0.1,
         scrollTrigger: {
-          trigger: '.dashboard-content',
-          start: 'top 80%',
-          end: 'bottom 20%',
-          toggleActions: 'play none none reverse',
+          trigger: ".dashboard-content",
+          start: "top 80%",
+          end: "bottom 20%",
+          toggleActions: "play none none reverse",
         },
-      }
+      },
     );
   }, []);
 
   const handleLogout = () => {
     setShowUserDropdown(false);
     if (onLogout) onLogout();
-    alert('Logging out...');
-    navigate('/');
+    alert("Logging out...");
+    navigate("/");
   };
 
   // Fetch events
   useEffect(() => {
-    if (activeSection === 'events') {
+    if (activeSection === "events") {
       (async () => {
         setLoadingEvents(true);
         setErrorEvents(null);
         try {
-          const res = await api.get<EventItem[]>('/api/getevents');
+          const res = await api.get<EventItem[]>("/api/getevents");
           setEvents(res.data);
         } catch {
-          setErrorEvents('Failed to fetch events');
+          setErrorEvents("Failed to fetch events");
         } finally {
           setLoadingEvents(false);
         }
@@ -177,15 +190,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
   // Fetch question papers
   useEffect(() => {
-    if (activeSection === 'questions') {
+    if (activeSection === "questions") {
       (async () => {
         setLoadingQP(true);
         setErrorQP(null);
         try {
-          const res = await api.get<QuestionPaper[]>('/api/sendquestions');
+          const res = await api.get<QuestionPaper[]>("/api/sendquestions");
           setQuestionPapers(res.data);
         } catch {
-          setErrorQP('Failed to fetch question papers');
+          setErrorQP("Failed to fetch question papers");
         } finally {
           setLoadingQP(false);
         }
@@ -195,15 +208,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
   // Fetch newspapers
   useEffect(() => {
-    if (activeSection === 'newspapers') {
+    if (activeSection === "newspapers") {
       (async () => {
         setLoadingNP(true);
         setErrorNP(null);
         try {
-          const res = await api.get<Newspaper[]>('/api/sendnewspapers');
+          const res = await api.get<Newspaper[]>("/api/sendnewspapers");
           setNewspapers(res.data);
         } catch {
-          setErrorNP('Failed to fetch newspapers');
+          setErrorNP("Failed to fetch newspapers");
         } finally {
           setLoadingNP(false);
         }
@@ -213,15 +226,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
   // Fetch news
   useEffect(() => {
-    if (activeSection === 'news') {
+    if (activeSection === "news") {
       (async () => {
         setLoadingNews(true);
         setErrorNews(null);
         try {
-          const res = await api.get<NewsItem[]>('/api/getnews');
+          const res = await api.get<NewsItem[]>("/api/getnews");
           setNews(res.data);
         } catch {
-          setErrorNews('Failed to fetch news');
+          setErrorNews("Failed to fetch news");
         } finally {
           setLoadingNews(false);
         }
@@ -230,67 +243,78 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   }, [activeSection]);
 
   useEffect(() => {
-    if (activeSection === 'news') {
+    if (activeSection === "news") {
       const foundCategory = categories.find((cat) =>
-        news.some((n) => n.category?.toLowerCase() === cat.toLowerCase())
+        news.some((n) => n.category?.toLowerCase() === cat.toLowerCase()),
       );
-      setSelectedCategory(foundCategory || 'TKMCE');
+      setSelectedCategory(foundCategory || "TKMCE");
     }
   }, [news, activeSection]);
 
   const sections = [
-    { id: 'events', label: 'Events', icon: Calendar },
-    { id: 'questions', label: 'Question Papers', icon: FileText },
-    { id: 'newspapers', label: 'Newspapers', icon: Newspaper },
-    { id: 'news', label: 'News', icon: Globe },
+    { id: "events", label: "Events", icon: Calendar },
+    { id: "questions", label: "Question Papers", icon: FileText },
+    { id: "newspapers", label: "Newspapers", icon: Newspaper },
+    { id: "news", label: "News", icon: Globe },
   ];
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterMode === 'all' || event.mode.toLowerCase() === filterMode;
+    const matchesFilter =
+      filterMode === "all" || event.mode.toLowerCase() === filterMode;
     return matchesSearch && matchesFilter;
   });
 
   const renderContent = () => {
     switch (activeSection) {
-      case 'events':
+      case "events":
         if (loadingEvents)
-          return <p className="text-gray-400 text-center py-8">Loading events...</p>;
+          return (
+            <p className="text-gray-400 text-center py-8">Loading events...</p>
+          );
         if (errorEvents)
           return <p className="text-red-500 text-center py-8">{errorEvents}</p>;
         return (
           <div className="max-w-lg sm:max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 space-y-6">
             {/* Search + Filter Bar */}
             <div className="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto mb-6">
-            {/* Search with Icon */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search events..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50"
-              />
-            </div>
+              {/* Search with Icon */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search events..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50"
+                />
+              </div>
 
-            {/* Filter with Icon */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <select
-                value={filterMode}
-                onChange={(e) => setFilterMode(e.target.value as any)}
-                className="pl-10 pr-8 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50 appearance-none"
-              >
-                <option className="bg-[#0f172a]" value="all">All Events</option>
-                <option className="bg-[#0f172a]" value="online">Online</option>
-                <option className="bg-[#0f172a]" value="offline">Offline</option>
-                <option className="bg-[#0f172a]" value="hybrid">Hybrid</option>
-              </select>
+              {/* Filter with Icon */}
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <select
+                  value={filterMode}
+                  onChange={(e) => setFilterMode(e.target.value as any)}
+                  className="pl-10 pr-8 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50 appearance-none"
+                >
+                  <option className="bg-[#0f172a]" value="all">
+                    All Events
+                  </option>
+                  <option className="bg-[#0f172a]" value="online">
+                    Online
+                  </option>
+                  <option className="bg-[#0f172a]" value="offline">
+                    Offline
+                  </option>
+                  <option className="bg-[#0f172a]" value="hybrid">
+                    Hybrid
+                  </option>
+                </select>
+              </div>
             </div>
-          </div>
 
             {filteredEvents.map((event) => (
               <div
@@ -308,7 +332,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                   </h3>
                   <p className="text-gray-300 text-xs sm:text-sm text-center leading-relaxed px-2">
                     {event.description.length > 40
-                      ? event.description.substring(0, 40) + '...'
+                      ? event.description.substring(0, 40) + "..."
                       : event.description}
                   </p>
                   <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0 text-xs sm:text-sm">
@@ -316,12 +340,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       <div className="flex items-start gap-2">
                         <span className="text-neon-blue text-lg">📅</span>
                         <div>
-                          <span className="text-white font-semibold block">Date</span>
+                          <span className="text-white font-semibold block">
+                            Date
+                          </span>
                           <span className="text-gray-300">
-                            {new Date(event.date).toLocaleDateString('en-US', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
+                            {new Date(event.date).toLocaleDateString("en-US", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
                             })}
                           </span>
                         </div>
@@ -329,7 +355,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       <div className="flex items-start gap-2">
                         <span className="text-neon-purple text-lg">🕒</span>
                         <div>
-                          <span className="text-white font-semibold block">Time</span>
+                          <span className="text-white font-semibold block">
+                            Time
+                          </span>
                           <span className="text-gray-300">{event.time}</span>
                         </div>
                       </div>
@@ -338,15 +366,23 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       <div className="flex items-start gap-2">
                         <span className="text-orange-400 text-lg">📺</span>
                         <div>
-                          <span className="text-white font-semibold block">Mode</span>
-                          <span className="text-gray-300 capitalize">{event.mode}</span>
+                          <span className="text-white font-semibold block">
+                            Mode
+                          </span>
+                          <span className="text-gray-300 capitalize">
+                            {event.mode}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-green-400 text-lg">📍</span>
                         <div>
-                          <span className="text-white font-semibold block">Venue</span>
-                          <span className="text-gray-300 break-words">{event.venue}</span>
+                          <span className="text-white font-semibold block">
+                            Venue
+                          </span>
+                          <span className="text-gray-300 break-words">
+                            {event.venue}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -354,7 +390,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                   <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-3 pt-3 border-t border-white/10">
                     <span className="text-gray-400 text-xs sm:text-sm">
                       🎟 Max Participants:{" "}
-                      <span className="text-white font-semibold">{event.max_participants}</span>
+                      <span className="text-white font-semibold">
+                        {event.max_participants}
+                      </span>
                     </span>
                     <button
                       onClick={() => navigate(`/dashboard/event/${event.id}`)}
@@ -368,9 +406,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
             ))}
           </div>
         );
-      case 'questions':
-        if (loadingQP) return <p className="text-gray-400 text-center py-8">Loading question papers...</p>;
-        if (errorQP) return <p className="text-red-500 text-center py-8">{errorQP}</p>;
+      case "questions":
+        if (loadingQP)
+          return (
+            <p className="text-gray-400 text-center py-8">
+              Loading question papers...
+            </p>
+          );
+        if (errorQP)
+          return <p className="text-red-500 text-center py-8">{errorQP}</p>;
 
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -382,7 +426,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                 <div className="flex items-start mb-4">
                   <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-neon-blue mr-3 flex-shrink-0 mt-1" />
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base sm:text-lg font-semibold text-white leading-tight mb-1">{paper.title}</h3>
+                    <h3 className="text-base sm:text-lg font-semibold text-white leading-tight mb-1">
+                      {paper.title}
+                    </h3>
                     <p className="text-xs sm:text-sm text-gray-400">
                       {paper.subject} • {paper.year}
                     </p>
@@ -390,7 +436,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                 </div>
                 <div className="flex flex-col space-y-2 sm:space-y-3">
                   <button
-                    onClick={() => onOpenPDF(paper.url, paper.title, 'question')}
+                    onClick={() =>
+                      onOpenPDF(paper.url, paper.title, "question")
+                    }
                     className="flex items-center justify-center space-x-2 py-2.5 px-4 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300 hover:scale-105 text-sm"
                   >
                     <Eye className="w-4 h-4" />
@@ -410,9 +458,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
           </div>
         );
 
-      case 'newspapers':
-        if (loadingNP) return <p className="text-gray-400 text-center py-8">Loading newspapers...</p>;
-        if (errorNP) return <p className="text-red-500 text-center py-8">{errorNP}</p>;
+      case "newspapers":
+        if (loadingNP)
+          return (
+            <p className="text-gray-400 text-center py-8">
+              Loading newspapers...
+            </p>
+          );
+        if (errorNP)
+          return <p className="text-red-500 text-center py-8">{errorNP}</p>;
 
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -424,13 +478,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                 <div className="flex items-start mb-4">
                   <Newspaper className="w-6 h-6 sm:w-8 sm:h-8 text-neon-blue mr-3 flex-shrink-0 mt-1" />
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base sm:text-lg font-semibold text-white leading-tight mb-1">{paper.title}</h3>
-                    <p className="text-xs sm:text-sm text-gray-400">{paper.date}</p>
+                    <h3 className="text-base sm:text-lg font-semibold text-white leading-tight mb-1">
+                      {paper.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-400">
+                      {paper.date}
+                    </p>
                   </div>
                 </div>
                 <div className="flex flex-col space-y-2 sm:space-y-3">
                   <button
-                    onClick={() => onOpenPDF(paper.url, paper.title, 'newspaper')}
+                    onClick={() =>
+                      onOpenPDF(paper.url, paper.title, "newspaper")
+                    }
                     className="flex items-center justify-center space-x-2 py-2.5 px-4 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300 hover:scale-105 text-sm"
                   >
                     <Eye className="w-4 h-4" />
@@ -450,14 +510,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
           </div>
         );
 
-      case 'news':
-        if (loadingNews) return <p className="text-gray-400 text-center py-8">Loading news...</p>;
-        if (errorNews) return <p className="text-red-500 text-center py-8">{errorNews}</p>;
+      case "news":
+        if (loadingNews)
+          return (
+            <p className="text-gray-400 text-center py-8">Loading news...</p>
+          );
+        if (errorNews)
+          return <p className="text-red-500 text-center py-8">{errorNews}</p>;
         if (!news || !Array.isArray(news))
-          return <p className="text-red-500 text-center py-8">News data is unavailable</p>;
+          return (
+            <p className="text-red-500 text-center py-8">
+              News data is unavailable
+            </p>
+          );
 
         const filteredNews = news.filter(
-          (n) => n?.category?.toLowerCase() === selectedCategory.toLowerCase()
+          (n) => n?.category?.toLowerCase() === selectedCategory.toLowerCase(),
         );
 
         return (
@@ -474,8 +542,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       className={`px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-center transition-colors text-xs sm:text-sm lg:text-base lg:flex-1 lg:min-w-[120px]
                         ${
                           isActive
-                            ? 'bg-neon-blue text-white border border-neon-blue'
-                            : 'bg-white/10 text-gray-300 border border-transparent hover:bg-neon-blue/50 hover:text-white'
+                            ? "bg-neon-blue text-white border border-neon-blue"
+                            : "bg-white/10 text-gray-300 border border-transparent hover:bg-neon-blue/50 hover:text-white"
                         }`}
                     >
                       {category}
@@ -487,7 +555,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
             <div className="text-center sm:text-left">
               <h2 className="text-lg sm:text-xl font-semibold text-white">
-                Showing: <span className="text-neon-blue">{selectedCategory} News</span>
+                Showing:{" "}
+                <span className="text-neon-blue">{selectedCategory} News</span>
               </h2>
             </div>
 
@@ -502,7 +571,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       <span className="px-2 sm:px-3 py-1 bg-neon-blue/20 text-neon-blue text-xs rounded-full flex-shrink-0">
                         {newsItem.category}
                       </span>
-                      <span className="text-xs text-gray-400 text-right">{newsItem.posted_at || 'Unknown'}</span>
+                      <span className="text-xs text-gray-400 text-right">
+                        {newsItem.posted_at || "Unknown"}
+                      </span>
                     </div>
                     <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white glow-text mb-3 leading-tight">
                       {newsItem.title}
@@ -519,7 +590,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-center py-8">No news found for this category.</p>
+              <p className="text-gray-400 text-center py-8">
+                No news found for this category.
+              </p>
             )}
           </div>
         );
@@ -537,8 +610,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
           <div className="flex items-center justify-between">
             {/* Left: Dashboard Title */}
             <div className="flex flex-col">
-              <h1 className="text-xl sm:text-2xl font-bold text-white glow-text">Dashboard</h1>
-              <p className="text-gray-400 text-xs sm:text-sm mt-0.5">Welcome back, {user?.name}</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-white glow-text">
+                Dashboard
+              </h1>
+              <p className="text-gray-400 text-xs sm:text-sm mt-0.5">
+                Welcome back, {user?.name}
+              </p>
             </div>
 
             {/* Right: User dropdown */}
@@ -558,7 +635,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
               {showUserDropdown && (
                 <>
                   {/* Overlay */}
-                  <div className="fixed inset-0 z-[998]" onClick={() => setShowUserDropdown(false)} />
+                  <div
+                    className="fixed inset-0 z-[998]"
+                    onClick={() => setShowUserDropdown(false)}
+                  />
                   {/* Dropdown Menu */}
                   <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-gray-900/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl z-[999] overflow-hidden">
                     <div className="bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10">
@@ -567,8 +647,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                           {user?.email.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-white font-semibold text-sm sm:text-base truncate">{user?.name}</h3>
-                          <p className="text-gray-400 text-xs sm:text-sm truncate">{user?.email}</p>
+                          <h3 className="text-white font-semibold text-sm sm:text-base truncate">
+                            {user?.name}
+                          </h3>
+                          <p className="text-gray-400 text-xs sm:text-sm truncate">
+                            {user?.email}
+                          </p>
                           <span className="inline-block px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium mt-1 bg-neon-blue/20 text-neon-blue">
                             Student
                           </span>
@@ -579,27 +663,37 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       <button
                         onClick={() => {
                           setShowUserDropdown(false);
-                          navigate('/account', { state: { email: user?.email } });
+                          navigate("/account", {
+                            state: { email: user?.email },
+                          });
                         }}
                         className="w-full px-4 sm:px-6 py-2 sm:py-3 text-left text-white hover:bg-white/10 flex items-center space-x-3 transition-all duration-300"
                       >
                         <User className="w-4 h-4 sm:w-5 sm:h-5 text-neon-blue flex-shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm sm:text-base">Account Details</p>
-                          <p className="text-xs text-gray-400">View and manage your profile</p>
+                          <p className="font-medium text-sm sm:text-base">
+                            Account Details
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            View and manage your profile
+                          </p>
                         </div>
                       </button>
                       <button
                         onClick={() => {
                           setShowUserDropdown(false);
-                          navigate('/profile');
+                          navigate("/profile");
                         }}
                         className="w-full px-4 sm:px-6 py-2 sm:py-3 text-left text-white hover:bg-white/10 flex items-center space-x-3 transition-all duration-300"
                       >
                         <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-neon-purple flex-shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm sm:text-base">Profile</p>
-                          <p className="text-xs text-gray-400">Manage your preferences</p>
+                          <p className="font-medium text-sm sm:text-base">
+                            Profile
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Manage your preferences
+                          </p>
                         </div>
                       </button>
                       <div className="border-t border-white/10 my-1 sm:my-2"></div>
@@ -609,8 +703,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       >
                         <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm sm:text-base">Sign Out</p>
-                          <p className="text-xs text-red-300">Logout from your account</p>
+                          <p className="font-medium text-sm sm:text-base">
+                            Sign Out
+                          </p>
+                          <p className="text-xs text-red-300">
+                            Logout from your account
+                          </p>
                         </div>
                       </button>
                     </div>
@@ -630,8 +728,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="w-full flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 text-white"
           >
-            <span className="font-medium">{sections.find((s) => s.id === activeSection)?.label}</span>
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <span className="font-medium">
+              {sections.find((s) => s.id === activeSection)?.label}
+            </span>
+            {isMobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </button>
 
           {isMobileMenuOpen && (
@@ -648,8 +752,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                     }}
                     className={`w-full flex items-center space-x-3 p-3 transition-all duration-300 border-b border-white/5 last:border-b-0 ${
                       isActive
-                        ? 'bg-neon-blue/20 text-neon-blue'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        ? "bg-neon-blue/20 text-neon-blue"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -672,8 +776,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                 onClick={() => setActiveSection(section.id)}
                 className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all duration-300 text-sm md:text-base ${
                   isActive
-                    ? 'bg-neon-blue/20 text-neon-blue border border-neon-blue/30'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? "bg-neon-blue/20 text-neon-blue border border-neon-blue/30"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -685,7 +789,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
       </div>
 
       {/* Content */}
-      <div className="dashboard-content container mx-auto px-4 sm:px-6 py-8">{renderContent()}</div>
+      <div className="dashboard-content container mx-auto px-4 sm:px-6 py-8">
+        {renderContent()}
+      </div>
 
       <Footer />
     </div>

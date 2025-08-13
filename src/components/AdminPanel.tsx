@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Upload,
   FileText,
@@ -10,80 +10,87 @@ import {
   MapPin,
   Save,
   LogOut,
-} from 'lucide-react';
-import { api } from '../utils/api';
+} from "lucide-react";
+import { api } from "../utils/api";
 
 interface AdminPanelProps {
   onLogout?: () => void;
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState('newspapers');
+  const [activeTab, setActiveTab] = useState("newspapers");
   const [isUploading, setIsUploading] = useState(false);
 
   // Newspaper state
-  const [newspaperTitle, setNewspaperTitle] = React.useState('');
-  const [newspaperDate, setNewspaperDate] = React.useState('');
+  const [newspaperTitle, setNewspaperTitle] = React.useState("");
+  const [newspaperDate, setNewspaperDate] = React.useState("");
   const [newspaperFile, setNewspaperFile] = React.useState<File | null>(null);
 
   // Question Paper state
-  const [examTitle, setExamTitle] = React.useState('');
-  const [examSubject, setExamSubject] = React.useState('');
-  const [examYear, setExamYear] = React.useState('');
-  const [examCategory, setExamCategory] = React.useState('');
-  const [questionPaperFile, setQuestionPaperFile] = React.useState<File | null>(null);
+  const [examTitle, setExamTitle] = React.useState("");
+  const [examSubject, setExamSubject] = React.useState("");
+  const [examYear, setExamYear] = React.useState("");
+  const [examCategory, setExamCategory] = React.useState("");
+  const [questionPaperFile, setQuestionPaperFile] = React.useState<File | null>(
+    null,
+  );
 
   // News state
-  const [newsTitle, setNewsTitle] = React.useState('');
-  const [newsUrl, setNewsUrl] = React.useState('');
-  const [newsCategory, setNewsCategory] = React.useState('Global');
+  const [newsTitle, setNewsTitle] = React.useState("");
+  const [newsUrl, setNewsUrl] = React.useState("");
+  const [newsCategory, setNewsCategory] = React.useState("Global");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Event state
   const [eventForm, setEventForm] = React.useState({
-    coverPhoto: '',
-    name: '',
-    description: '',
-    participantLimit: '',
-    venue: '',
-    mode: 'offline',
-    organizerContact1: '',
-    organizerContact2: '',
-    time: '',
-    date: '',
+    coverPhoto: "",
+    name: "",
+    description: "",
+    participantLimit: "",
+    venue: "",
+    mode: "offline",
+    organizerContact1: "",
+    organizerContact2: "",
+    time: "",
+    date: "",
   });
   const [coverPhotoFile, setCoverPhotoFile] = React.useState<File | null>(null);
   const [isEventUploading, setIsEventUploading] = React.useState(false);
 
   const tabs = [
-    { id: 'newspapers', label: 'Newspapers', icon: Newspaper },
-    { id: 'questions', label: 'Question Papers', icon: FileText },
-    { id: 'news', label: 'News Posts', icon: Globe },
-    { id: 'events', label: 'Events', icon: Calendar },
+    { id: "newspapers", label: "Newspapers", icon: Newspaper },
+    { id: "questions", label: "Question Papers", icon: FileText },
+    { id: "news", label: "News Posts", icon: Globe },
+    { id: "events", label: "Events", icon: Calendar },
   ];
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   // --- Handlers ---
   const handleNewspaperSave = async () => {
     if (!newspaperTitle || !newspaperDate || !newspaperFile) {
-      alert('Please fill all fields and upload a PDF.');
+      alert("Please fill all fields and upload a PDF.");
       return;
     }
     setIsUploading(true);
     const formData = new FormData();
-    formData.append('title', newspaperTitle);
-    formData.append('date', newspaperDate);
-    formData.append('pdf', newspaperFile);
-    formData.append('type_id', '2');
+    formData.append("title", newspaperTitle);
+    formData.append("date", newspaperDate);
+    formData.append("pdf", newspaperFile);
+    formData.append("type_id", "2");
     try {
-      await api.post("/api/admin/newspapers", formData, { headers: { Authorization: `Bearer ${token}` } })
-      alert('Newspaper saved successfully!');
-      setNewspaperTitle('');
-      setNewspaperDate('');
+      await api.post("/api/admin/newspapers", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert("Newspaper saved successfully!");
+      setNewspaperTitle("");
+      setNewspaperDate("");
       setNewspaperFile(null);
     } catch (error) {
-      alert('Error uploading newspaper: ' + (error instanceof Error ? error.message : String(error)));
+      alert(
+        "Error uploading newspaper: " +
+          (error instanceof Error ? error.message : String(error)),
+      );
     } finally {
       setIsUploading(false);
     }
@@ -91,30 +98,33 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
   const handleQuestionPaperSave = async () => {
     if (!examTitle || !examYear || !questionPaperFile) {
-      alert('Please fill all fields and upload a PDF.');
+      alert("Please fill all fields and upload a PDF.");
       return;
     }
     setIsUploading(true);
     const formData = new FormData();
-    formData.append('title', examTitle);
-    formData.append('date', examYear);
-    formData.append('pdf', questionPaperFile);
-    formData.append('type_id', '1');
+    formData.append("title", examTitle);
+    formData.append("date", examYear);
+    formData.append("pdf", questionPaperFile);
+    formData.append("type_id", "1");
     try {
-      const res = await fetch('/api/admin/questionpapers', {
-        method: 'POST',
+      const res = await fetch("/api/admin/questionpapers", {
+        method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      if (!res.ok) throw new Error('Upload failed');
-      alert('Question paper saved successfully!');
-      setExamTitle('');
-      setExamYear('');
-      setExamCategory('');
-      setExamSubject('');
+      if (!res.ok) throw new Error("Upload failed");
+      alert("Question paper saved successfully!");
+      setExamTitle("");
+      setExamYear("");
+      setExamCategory("");
+      setExamSubject("");
       setQuestionPaperFile(null);
     } catch (error) {
-      alert('Error uploading question paper: ' + (error instanceof Error ? error.message : String(error)));
+      alert(
+        "Error uploading question paper: " +
+          (error instanceof Error ? error.message : String(error)),
+      );
     } finally {
       setIsUploading(false);
     }
@@ -122,33 +132,36 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
   const handleNewsSubmit = async () => {
     if (!newsTitle || !newsUrl || !newsCategory) {
-      alert('Please enter both title and link.');
+      alert("Please enter both title and link.");
       return;
     }
     setIsSubmitting(true);
     try {
-       await api.post('/api/admin/news', {
-        title: newsTitle,
-        url: newsUrl,
-        category: newsCategory,
-      }, {
-
+      await api.post(
+        "/api/admin/news",
+        {
+          title: newsTitle,
+          url: newsUrl,
+          category: newsCategory,
+        },
+        {
           headers: { Authorization: `Bearer ${token}` },
-
-        }
+        },
       );
-      alert('News published successfully!');
-      setNewsTitle('');
-      setNewsUrl('');
+      alert("News published successfully!");
+      setNewsTitle("");
+      setNewsUrl("");
     } catch (err) {
-      alert('Error: ' + (err instanceof Error ? err.message : String(err)));
+      alert("Error: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target;
     setEventForm((prev) => ({
@@ -168,48 +181,51 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
       !eventForm.organizerContact2 ||
       !eventForm.date
     ) {
-      alert('Please fill all required fields including date.');
+      alert("Please fill all required fields including date.");
       return;
     }
     setIsEventUploading(true);
     const formData = new FormData();
     if (coverPhotoFile) {
-      formData.append('coverPhoto', coverPhotoFile);
+      formData.append("coverPhoto", coverPhotoFile);
     } else if (eventForm.coverPhoto) {
-      formData.append('coverPhotoUrl', eventForm.coverPhoto);
+      formData.append("coverPhotoUrl", eventForm.coverPhoto);
     }
-    formData.append('name', eventForm.name);
-    formData.append('description', eventForm.description);
-    formData.append('participantLimit', eventForm.participantLimit);
-    formData.append('venue', eventForm.venue);
-    formData.append('mode', eventForm.mode);
-    formData.append('organizerContact1', eventForm.organizerContact1);
-    formData.append('organizerContact2', eventForm.organizerContact2);
-    formData.append('time', eventForm.time);
-    formData.append('date', eventForm.date);
+    formData.append("name", eventForm.name);
+    formData.append("description", eventForm.description);
+    formData.append("participantLimit", eventForm.participantLimit);
+    formData.append("venue", eventForm.venue);
+    formData.append("mode", eventForm.mode);
+    formData.append("organizerContact1", eventForm.organizerContact1);
+    formData.append("organizerContact2", eventForm.organizerContact2);
+    formData.append("time", eventForm.time);
+    formData.append("date", eventForm.date);
     try {
-      const res = await fetch('/api/admin/events', {
-        method: 'POST',
+      const res = await fetch("/api/admin/events", {
+        method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      if (!res.ok) throw new Error('Failed to create event');
-      alert('Event created successfully!');
+      if (!res.ok) throw new Error("Failed to create event");
+      alert("Event created successfully!");
       setEventForm({
-        coverPhoto: '',
-        name: '',
-        description: '',
-        participantLimit: '',
-        venue: '',
-        mode: 'offline',
-        organizerContact1: '',
-        organizerContact2: '',
-        time: '',
-        date: '',
+        coverPhoto: "",
+        name: "",
+        description: "",
+        participantLimit: "",
+        venue: "",
+        mode: "offline",
+        organizerContact1: "",
+        organizerContact2: "",
+        time: "",
+        date: "",
       });
       setCoverPhotoFile(null);
     } catch (err) {
-      alert('Error creating event: ' + (err instanceof Error ? err.message : String(err)));
+      alert(
+        "Error creating event: " +
+          (err instanceof Error ? err.message : String(err)),
+      );
     } finally {
       setIsEventUploading(false);
     }
@@ -411,7 +427,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   const renderNewsEditor = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-800">Manage News Posts</h3>
+        <h3 className="text-xl font-semibold text-gray-800">
+          Manage News Posts
+        </h3>
       </div>
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="space-y-4">
@@ -480,11 +498,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
   const renderEventEditor = () => (
     <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">Create New Event</h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-6">
+        Create New Event
+      </h2>
       <form onSubmit={handleEventSubmit} className="space-y-6">
         {/* Cover Photo */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Event Cover Photo</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Cover Photo
+          </label>
           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="flex-1">
               <input
@@ -496,7 +518,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               {coverPhotoFile && (
-                <div className="mt-2 text-xs text-gray-500">Uploaded: {coverPhotoFile.name}</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  Uploaded: {coverPhotoFile.name}
+                </div>
               )}
             </div>
             <label
@@ -521,7 +545,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
         {/* Event Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Event Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Name
+          </label>
           <input
             type="text"
             name="name"
@@ -535,7 +561,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
         {/* Event Date - NEW */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Event Date</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Date
+          </label>
           <input
             type="date"
             name="date"
@@ -548,7 +576,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Event Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Description
+          </label>
           <textarea
             name="description"
             value={eventForm.description}
@@ -563,7 +593,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
         {/* Participant Limit & Venue */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Participant Limit</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Participant Limit
+            </label>
             <input
               type="number"
               name="participantLimit"
@@ -575,7 +607,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Venue</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Venue
+            </label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -594,7 +628,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
         {/* Mode & Contact */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Event Mode</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Event Mode
+            </label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <select
@@ -610,7 +646,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Organizer Contact 1</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Organizer Contact 1
+            </label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -628,7 +666,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Time
+            </label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -641,7 +681,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Organizer Contact 2</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Organizer Contact 2
+            </label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -680,13 +722,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'newspapers':
+      case "newspapers":
         return renderNewspaperUpload();
-      case 'questions':
+      case "questions":
         return renderQuestionPaperUpload();
-      case 'news':
+      case "news":
         return renderNewsEditor();
-      case 'events':
+      case "events":
         return renderEventEditor();
       default:
         return null;
@@ -701,7 +743,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
           <div className="flex items-center justify-between h-16">
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500">Civil Service aspirants Club TKMCE</span>
+              <span className="text-sm text-gray-500">
+                Civil Service aspirants Club TKMCE
+              </span>
               <button
                 onClick={onLogout}
                 className="flex items-center px-3 py-1.5 bg-red-50 hover:bg-red-100 
@@ -727,10 +771,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === tab.id
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                        : 'text-gray-700 hover:bg-gray-50'
-                      }`}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                      activeTab === tab.id
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{tab.label}</span>
@@ -747,6 +792,5 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
     </div>
   );
 };
-
 
 export default AdminPanel;
