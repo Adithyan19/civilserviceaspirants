@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar } from "lucide-react";
 import Footer from "./Footer";
+import { api } from "../utils/api";
 
 interface EnrolledEvent {
   id: number;
@@ -38,17 +39,12 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout }) => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token"); // Assuming JWT is stored here
-        const res = await fetch("/api/user/enrolled-events", {
+        const res = await api.get("/api/user/enrolled-events", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch enrolled events");
-        }
-
-        const data = await res.json();
+        const data = res.data;
         setEnrolledEvents(data || []);
       } catch (err) {
         console.error("Error fetching enrolled events:", err);

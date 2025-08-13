@@ -108,12 +108,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
     formData.append("pdf", questionPaperFile);
     formData.append("type_id", "1");
     try {
-      const res = await fetch("/api/admin/questionpapers", {
-        method: "POST",
+      await api.post("/api/admin/questionpapers", formData, {
         headers: { Authorization: `Bearer ${token}` },
-        body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
       alert("Question paper saved successfully!");
       setExamTitle("");
       setExamYear("");
@@ -201,12 +198,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
     formData.append("time", eventForm.time);
     formData.append("date", eventForm.date);
     try {
-      const res = await fetch("/api/admin/events", {
-        method: "POST",
+      await api.post("/api/admin/events", formData, {
         headers: { Authorization: `Bearer ${token}` },
-        body: formData,
       });
-      if (!res.ok) throw new Error("Failed to create event");
+
       alert("Event created successfully!");
       setEventForm({
         coverPhoto: "",
