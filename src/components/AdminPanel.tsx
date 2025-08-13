@@ -9,31 +9,37 @@ import {
   Phone,
   MapPin,
   Save,
+  LogOut,
 } from 'lucide-react';
+import { api } from '../utils/api';
 
-const AdminPanel: React.FC = () => {
+interface AdminPanelProps {
+  onLogout?: () => void;
+}
+
+const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('newspapers');
   const [isUploading, setIsUploading] = useState(false);
 
-  // Newspaper
+  // Newspaper state
   const [newspaperTitle, setNewspaperTitle] = React.useState('');
   const [newspaperDate, setNewspaperDate] = React.useState('');
   const [newspaperFile, setNewspaperFile] = React.useState<File | null>(null);
 
-  // Question Paper
+  // Question Paper state
   const [examTitle, setExamTitle] = React.useState('');
   const [examSubject, setExamSubject] = React.useState('');
   const [examYear, setExamYear] = React.useState('');
   const [examCategory, setExamCategory] = React.useState('');
   const [questionPaperFile, setQuestionPaperFile] = React.useState<File | null>(null);
 
-  // News
+  // News state
   const [newsTitle, setNewsTitle] = React.useState('');
   const [newsUrl, setNewsUrl] = React.useState('');
-  const [newsCategory, setNewsCategory] = React.useState('General');
+  const [newsCategory, setNewsCategory] = React.useState('Global');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Event (added date field)
+  // Event state
   const [eventForm, setEventForm] = React.useState({
     coverPhoto: '',
     name: '',
@@ -56,7 +62,9 @@ const AdminPanel: React.FC = () => {
     { id: 'events', label: 'Events', icon: Calendar },
   ];
 
-  // ---- Newspaper save handler ----
+  const token = localStorage.getItem('token');
+
+  // --- Handlers ---
   const handleNewspaperSave = async () => {
     if (!newspaperTitle || !newspaperDate || !newspaperFile) {
       alert('Please fill all fields and upload a PDF.');
@@ -68,13 +76,8 @@ const AdminPanel: React.FC = () => {
     formData.append('date', newspaperDate);
     formData.append('pdf', newspaperFile);
     formData.append('type_id', '2');
-    formData.append('uploaded_by', '1'); // Replace as needed
     try {
-      const res = await fetch('http://localhost:5000/api/admin/newspapers', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Upload failed');
+      await api.post("/api/admin/newspapers", formData, { headers: { Authorization: `Bearer ${token}` } })
       alert('Newspaper saved successfully!');
       setNewspaperTitle('');
       setNewspaperDate('');
@@ -86,7 +89,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // ---- Question paper save handler ----
   const handleQuestionPaperSave = async () => {
     if (!examTitle || !examYear || !questionPaperFile) {
       alert('Please fill all fields and upload a PDF.');
@@ -98,10 +100,10 @@ const AdminPanel: React.FC = () => {
     formData.append('date', examYear);
     formData.append('pdf', questionPaperFile);
     formData.append('type_id', '1');
-    formData.append('uploaded_by', '1');
     try {
-      const res = await fetch('http://localhost:5000/api/admin/questionpapers', {
+      const res = await fetch('/api/admin/questionpapers', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       if (!res.ok) throw new Error('Upload failed');
@@ -118,7 +120,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // ---- News submit handler ----
   const handleNewsSubmit = async () => {
     if (!newsTitle || !newsUrl || !newsCategory) {
       alert('Please enter both title and link.');
@@ -126,17 +127,16 @@ const AdminPanel: React.FC = () => {
     }
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/news', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newsTitle,
-          url: newsUrl,
-          category: newsCategory,
-          posted_by: '1',
-        }),
-      });
-      if (!res.ok) throw new Error('Failed to publish news');
+       await api.post('/api/admin/news', {
+        title: newsTitle,
+        url: newsUrl,
+        category: newsCategory,
+      }, {
+
+          headers: { Authorization: `Bearer ${token}` },
+
+        }
+      );
       alert('News published successfully!');
       setNewsTitle('');
       setNewsUrl('');
@@ -147,7 +147,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // ---- Event input change handler ----
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -158,7 +157,6 @@ const AdminPanel: React.FC = () => {
     }));
   };
 
-  // ---- Event submit handler with date field ----
   const handleEventSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
@@ -175,13 +173,11 @@ const AdminPanel: React.FC = () => {
     }
     setIsEventUploading(true);
     const formData = new FormData();
-
     if (coverPhotoFile) {
       formData.append('coverPhoto', coverPhotoFile);
     } else if (eventForm.coverPhoto) {
       formData.append('coverPhotoUrl', eventForm.coverPhoto);
     }
-
     formData.append('name', eventForm.name);
     formData.append('description', eventForm.description);
     formData.append('participantLimit', eventForm.participantLimit);
@@ -191,10 +187,10 @@ const AdminPanel: React.FC = () => {
     formData.append('organizerContact2', eventForm.organizerContact2);
     formData.append('time', eventForm.time);
     formData.append('date', eventForm.date);
-
     try {
-      const res = await fetch('http://localhost:5000/api/admin/events', {
+      const res = await fetch('/api/admin/events', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       if (!res.ok) throw new Error('Failed to create event');
@@ -440,12 +436,12 @@ const AdminPanel: React.FC = () => {
               value={newsCategory}
               onChange={(e) => setNewsCategory(e.target.value)}
             >
-              <option>Global</option>
-              <option>India</option>
-              <option>Kerala</option>
-              <option>Placement</option>
-              <option>TKMCE</option>
-              <option>UPSC</option>
+              <option value="Global">Global</option>
+              <option value="India">India</option>
+              <option value="Kerala">Kerala</option>
+              <option value="Placement">Placement</option>
+              <option value="TKMCE">TKMCE</option>
+              <option value="UPSC">UPSC</option>
             </select>
           </div>
           <div>
@@ -699,18 +695,28 @@ const AdminPanel: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header with Logout */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <div className="text-sm text-gray-500">Civil Service aspirants Club TKMCE</div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-500">Civil Service aspirants Club TKMCE</span>
+              <button
+                onClick={onLogout}
+                className="flex items-center px-3 py-1.5 bg-red-50 hover:bg-red-100 
+                  border border-red-100 rounded-md text-red-600 text-sm font-medium transition-colors"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Body */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* mobile: stack sidebar above content */}
         <div className="flex flex-col md:flex-row md:space-x-8">
           {/* Sidebar */}
           <div className="w-full md:w-64 flex-shrink-0 mb-6 md:mb-0">
@@ -721,11 +727,10 @@ const AdminPanel: React.FC = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                      activeTab === tab.id
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === tab.id
                         ? 'bg-blue-50 text-blue-700 border border-blue-200'
                         : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{tab.label}</span>
@@ -742,5 +747,6 @@ const AdminPanel: React.FC = () => {
     </div>
   );
 };
+
 
 export default AdminPanel;

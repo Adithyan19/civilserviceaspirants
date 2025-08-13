@@ -130,7 +130,7 @@ const TeamPage: React.FC = () => {
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Home</span>
             </button>
-            <h1 className="text-3xl font-extrabold text-white glow-text text-center sm:text-left whitespace-nowrap">
+            <h1 className="text-3xl font-extrabold text-white  text-center sm:text-left whitespace-nowrap">
               Our Team
             </h1>
           </div>
@@ -142,7 +142,7 @@ const TeamPage: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 md:px-8 py-12">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl md:text-3xl font-semibold text-white mb-6">
-              Meet the Executive Committee
+              Meet the Execom Committee
             </h2>
             <p className="text-gray-400">
               Our dedicated team working together to empower future civil servants and build a strong community at TKMCE.

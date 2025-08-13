@@ -75,6 +75,11 @@ const Header: React.FC<HeaderProps> = ({
     }, 100);
   };
 
+  const handleEventsClick = () => {
+    setIsMobileMenuOpen(false);
+    navigate('/events');
+  };
+
   return (
     <header
       ref={headerRef}
@@ -128,6 +133,12 @@ const Header: React.FC<HeaderProps> = ({
               className="text-white text-sm sm:text-base hover:text-gray-300 transition-colors duration-300 rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-1"
             >
               About
+            </button>
+            <button
+              onClick={handleEventsClick}
+              className="text-white text-sm sm:text-base hover:text-gray-300 transition-colors duration-300 rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-1"
+            >
+              Events
             </button>
             <button
               onClick={() => scrollToSection('contact')}
@@ -186,6 +197,12 @@ const Header: React.FC<HeaderProps> = ({
                 className="text-left text-white text-base hover:text-neon-blue transition-colors rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-2"
               >
                 About
+              </button>
+              <button
+                onClick={handleEventsClick}
+                className="text-left text-white text-base hover:text-neon-blue transition-colors rounded focus:outline-none focus:ring-2 focus:ring-neon-blue px-2 py-2"
+              >
+                Events
               </button>
               <button
                 onClick={() => scrollToSection('contact')}

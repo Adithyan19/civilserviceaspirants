@@ -1,7 +1,11 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 
 const Footer: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const socialLinks = [
     { icon: <Facebook className="w-5 h-5" />, href: "#", label: "Facebook" },
     { icon: <Twitter className="w-5 h-5" />, href: "#", label: "Twitter" },
@@ -10,18 +14,37 @@ const Footer: React.FC = () => {
   ];
 
   const quickLinks = [
-    { name: "Home", href: "#hero" },
-    { name: "About", href: "#about" },
-    { name: "Contact", href: "#contact" },
-    { name: "Events", href: "#" },
-    { name: "Resources", href: "#" },
-    { name: "Alumni", href: "#" },
+    { name: "Home", href: "#hero", type: "scroll" },
+    { name: "About", href: "#about", type: "scroll" },
+    { name: "Events", href: "/events", type: "navigate" },
+    { name: "Contact", href: "#contact", type: "scroll" },
   ];
 
+  // Helper: jumps to ID after route has loaded
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId.replace('#', ''));
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    const id = sectionId.replace('#', '');
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 80); // wait for DOM update if needed
+  };
+
+  const handleLinkClick = (link: typeof quickLinks[0]) => {
+    if (link.type === "navigate") {
+      navigate(link.href);
+      return;
+    }
+    // Only "scroll" links below this point:
+
+    if (location.pathname !== '/') {
+      // Jump to "/" first, then scroll after navigation
+      navigate('/');
+      // Scroll after a small delay to let the page mount
+      setTimeout(() => scrollToSection(link.href), 120);
+    } else {
+      scrollToSection(link.href);
     }
   };
 
@@ -29,10 +52,10 @@ const Footer: React.FC = () => {
     <footer className="bg-gradient-to-t from-dark-bg to-gray-900 border-t border-white/10">
       <div className="container mx-auto px-6 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Club Info */}
+          {/* Club Info ... (no changes) */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-neon-blue to-neon-purple rounded-full flex items-center justify-center animate-pulse-glow">
+              <div className="w-12 h-12 bg-gradient-to-br from-neon-blue to-neon-purple rounded-full flex items-center justify-center">
                 <img 
                   src="/logo.jpg" 
                   alt="Club Logo" 
@@ -40,7 +63,8 @@ const Footer: React.FC = () => {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.nextElementSibling!.classList.remove('hidden');
+                    // nextElementSibling could be null
+                    if (target.nextElementSibling) (target.nextElementSibling as HTMLElement).classList.remove('hidden');
                   }}
                 />
                 <div className="hidden w-8 h-8 bg-neon-blue rounded-full"></div>
@@ -73,7 +97,6 @@ const Footer: React.FC = () => {
               </div>
             </div>
           </div>
-
           {/* Quick Links */}
           <div>
             <h4 className="text-lg font-semibold text-white mb-6">Quick Links</h4>
@@ -81,7 +104,7 @@ const Footer: React.FC = () => {
               {quickLinks.map((link, index) => (
                 <li key={index}>
                   <button
-                    onClick={() => scrollToSection(link.href)}
+                    onClick={() => handleLinkClick(link)}
                     className="text-gray-300 hover:text-neon-blue transition-colors duration-300 text-left"
                   >
                     {link.name}
@@ -90,7 +113,6 @@ const Footer: React.FC = () => {
               ))}
             </ul>
           </div>
-
           {/* Social Links */}
           <div>
             <h4 className="text-lg font-semibold text-white mb-6">Follow Us</h4>
@@ -106,30 +128,12 @@ const Footer: React.FC = () => {
                 </a>
               ))}
             </div>
-            
-            <div className="mt-8">
-              <h5 className="text-sm font-semibold text-white mb-3">Newsletter</h5>
-              <p className="text-gray-400 text-sm mb-4">
-                Stay updated with our latest events and opportunities.
-              </p>
-              <div className="flex">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 px-3 py-2 bg-glass-bg backdrop-blur-sm border border-white/20 rounded-l-lg text-white text-sm focus:border-neon-blue focus:outline-none"
-                />
-                <button className="px-4 py-2 bg-gradient-to-r from-neon-blue to-electric-blue text-white rounded-r-lg hover:shadow-glow transition-all duration-300">
-                  <Mail className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
           </div>
         </div>
-
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © 2024 Civil Servants Club TKMCE. All rights reserved.
+            © 2025 Civil Service Aspirants Club TKMCE. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300">

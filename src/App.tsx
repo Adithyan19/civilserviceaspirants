@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import {
   BrowserRouter as Router,
   Routes,
@@ -21,20 +22,59 @@ import AccountDetails from './components/AccountDetails';
 import Profile from './components/Profile';
 import OurTeam from './components/OurTeam';
 import TeamPage from './components/TeamPage';
-import EventPage from './components/EventPage';
+import HomeEventsPage from './components/HomeEventsPage';
+import EventDetailPage from './components/EventDetailPage';
+import EventPage from './components/EventPage'; // ✅ added import
 import { useModal } from './hooks/useModal';
 import './styles/locomotive.css';
+
+interface MyJwtPayload {
+  id: number;
+  email: string;
+  role: 'admin' | 'user';
+  name: string;
+  iat?: number;
+  exp?: number;
+}
 
 const AppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const { isOpen, openModal, closeModal } = useModal();
   const loginModal = useModal();
 
-  const [user, setUser] = useState<{ email: string; role: 'admin' | 'user'; name: string } | null>(
-    null
-  );
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwtDecode<MyJwtPayload>(token);
+        if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+          throw new Error('Token expired');
+        }
+        setUser({
+          email: decoded.email,
+          role: decoded.role,
+          name: decoded.name || '',
+        });
+      } catch (err) {
+        console.error('Invalid or expired token', err);
+        localStorage.removeItem('token');
+        setUser(null);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    navigate('/');
+  };
+
   const [pdfViewer, setPdfViewer] = useState({
     isOpen: false,
     url: '',
@@ -47,13 +87,10 @@ const AppContent: React.FC = () => {
   const isDashboardPage = location.pathname === '/dashboard';
   const isAdminPage = location.pathname === '/admin';
   const isEventPage = location.pathname.startsWith('/event/');
+  const isEventsListPage = location.pathname === '/events';
+  const isDashboardEventPage = location.pathname.startsWith('/dashboard/event/'); // ✅ detect dashboard event page
 
-  const handleLogin = (credentials: {
-    email: string;
-    password: string;
-    role: 'admin' | 'user';
-    name: string;
-  }) => {
+  const handleLogin = (credentials: { email: string; role: 'admin' | 'user'; name: string }) => {
     setUser({ email: credentials.email, role: credentials.role, name: credentials.name });
     loginModal.closeModal();
 
@@ -64,11 +101,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    navigate('/');
-  };
-
   const handleOpenPDF = (url: string, title: string, type: 'newspaper' | 'question') => {
     setPdfViewer({ isOpen: true, url, title, type });
   };
@@ -76,6 +108,17 @@ const AppContent: React.FC = () => {
   const handleClosePDF = () => {
     setPdfViewer((prev) => ({ ...prev, isOpen: false }));
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-blue mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -103,18 +146,52 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
+      {/* Events List Page */}
+      {isEventsListPage && (
+        <div>
+          <HomeEventsPage
+            user={user}
+            onLoginClick={loginModal.openModal}
+          />
+          <LoginModal
+            onSignupClick={openModal}
+            isOpen={loginModal.isOpen}
+            onClose={loginModal.closeModal}
+            onLogin={handleLogin}
+          />
+          <SignupModal isOpen={isOpen} onClose={closeModal} />
+        </div>
+      )}
+
+      {/* Event Detail Page (from Home) */}
+      {isEventPage && !isDashboardEventPage && (
+        <div>
+          <EventDetailPage
+            onLoginClick={loginModal.openModal}
+            user={user}
+          />
+          <LoginModal
+            onSignupClick={openModal}
+            isOpen={loginModal.isOpen}
+            onClose={loginModal.closeModal}
+            onLogin={handleLogin}
+          />
+          <SignupModal isOpen={isOpen} onClose={closeModal} />
+        </div>
+      )}
+
       {/* Dashboard */}
       {isDashboardPage && user && (
         <Dashboard user={user} onOpenPDF={handleOpenPDF} onLogout={handleLogout} />
       )}
 
-      {/* Event Page */}
-      {isEventPage && user && (
-        <EventPage user={user} onLogout={handleLogout} />
+      {/* Dashboard Event Page */}
+      {isDashboardEventPage && user && (
+        <EventPage user={user} onLogout={handleLogout} /> // ✅ load EventPage when coming from Dashboard
       )}
 
       {/* Admin */}
-      {isAdminPage && user && isAdmin && <AdminPanel />}
+      {isAdminPage && user && isAdmin && <AdminPanel onLogout={handleLogout} />}
 
       {/* Account Details */}
       {location.pathname === '/account' && user && (
@@ -124,18 +201,15 @@ const AppContent: React.FC = () => {
 
       {/* Profile */}
       {location.pathname === '/profile' && user && (
-        <Profile user={user} onLogout={handleLogout} onOpenPDF={handleOpenPDF} />
+        <Profile user={user} onLogout={handleLogout}  />//onOpenPDF={handleOpenPDF} maybe use later
       )}
       {location.pathname === '/profile' && !user && <Navigate to="/" replace />}
 
       {/* Team Page Layout */}
-      {location.pathname === '/team' && (
-        <TeamPage />
-      )}
+      {location.pathname === '/team' && <TeamPage />}
 
-      {/* Unauthorized Redirects */}
+      {/* Protected Route Redirects */}
       {isDashboardPage && !user && <Navigate to="/" replace />}
-      {isEventPage && !user && <Navigate to="/" replace />}
       {isAdminPage && (!user || !isAdmin) && (
         <Navigate to={user ? '/dashboard' : '/'} replace />
       )}
@@ -157,7 +231,9 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<AppContent />} />
+        <Route path="/events" element={<AppContent />} />
         <Route path="/dashboard" element={<AppContent />} />
+        <Route path="/dashboard/event/:id" element={<AppContent />} /> {/* ✅ NEW ROUTE */}
         <Route path="/admin" element={<AppContent />} />
         <Route path="/account" element={<AppContent />} />
         <Route path="/profile" element={<AppContent />} />

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { X, User, Mail, Phone, GraduationCap, Calendar, Eye, EyeOff, Lock } from 'lucide-react';
+import { api } from '../utils/api';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -126,15 +127,10 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+      const response = await api.post('/api/signup', formData);
+      const data = response.data
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
+      if (!data.success) {
         // Use data.error if exists or fallback message
         throw new Error('Signup failed: ' + (data.error || 'Unknown error'));
       }

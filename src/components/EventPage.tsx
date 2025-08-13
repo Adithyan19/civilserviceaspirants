@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   ArrowLeft,
   ChevronDown,
   User,
   Settings,
   LogOut,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Globe,
+  Phone,
 } from "lucide-react";
+import { api } from "../utils/api";
 
 interface EventDetails {
   id: string;
@@ -34,11 +40,29 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
   const [event, setEvent] = useState<EventDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await api.get(
+          `/api/check-enrollment/${id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (res.data.enrolled) setIsEnrolled(true);
+      } catch {
+        console.error("Failed to check enrollment status");
+      }
+    };
+
+    checkEnrollment();
+  }, [id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,7 +74,6 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
         setShowUserDropdown(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -60,8 +83,8 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get<EventDetails>(
-          `http://localhost:5000/api/getevent/${id}`
+        const res = await api.get<EventDetails>(
+          `/api/getevent/${id}`
         );
         setEvent(res.data);
       } catch (err) {
@@ -72,26 +95,70 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
     })();
   }, [id]);
 
-  const handleEnroll = async () => {
-    try {
-      const res = await axios.post("http://localhost:5000/api/enroll-event", {
-        eventId: id,
-        email,
-        password,
-      });
-      if (res.data.success) {
-        alert("Enrolled successfully!");
-        setEvent((prev) =>
-          prev ? { ...prev, max_participants: prev.max_participants - 1 } : prev
-        );
-        setShowEnrollModal(false);
-      } else {
-        alert(res.data.error || "Failed to enroll");
-      }
-    } catch {
-      alert("Error enrolling");
+const handleEnroll = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to enroll for an event.");
+      return;
     }
-  };
+
+    console.log("📤 Sending enrollment request for event:", id);
+
+    const res = await api.post(
+      "/api/enroll-event",
+      { eventId: id },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log("✅ Enrollment Response:", res.data);
+
+    if (res.data.success) {
+      alert("Enrolled successfully!");
+      setEvent((prev) =>
+        prev ? { ...prev, max_participants: prev.max_participants - 1 } : prev
+      );
+      setIsEnrolled(true);
+      setShowEnrollModal(false);
+    }
+  } catch (error: any) {
+    console.error("❌ Enrollment request failed:", error);
+
+    if (error.response) {
+      // Server responded with an error
+      console.error("🔍 Server Response Data:", error.response.data);
+      console.error("🌐 Status Code:", error.response.status);
+      console.error("📩 Response Headers:", error.response.headers);
+
+      const errorMessage = error.response.data?.error || "Error enrolling. Please try again later.";
+      
+      // Handle specific error cases
+      if (errorMessage.includes("already enrolled")) {
+        alert("You are already enrolled in this event.");
+        setIsEnrolled(true);
+        setShowEnrollModal(false);
+      } else if (errorMessage.includes("No slots left")) {
+        alert("Sorry, no slots are available for this event.");
+        // Optionally update the UI to show event is full
+        setEvent((prev) =>
+          prev ? { ...prev, max_participants: 0 } : prev
+        );
+      } else {
+        alert(errorMessage);
+      }
+    } else if (error.request) {
+      // Request made but no server response
+      console.error("⚠️ No Response received from the server:", error.request);
+      alert("No response from the server. Please check your connection.");
+    } else {
+      // Something else happened while setting up the request
+      console.error("💥 Axios setup error:", error.message);
+      alert("Unexpected error occurred. Please try again later.");
+    }
+  }
+};
 
   const handleBackToDashboard = () => {
     navigate("/dashboard");
@@ -106,10 +173,39 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
     navigate("/");
   };
 
+  const getModeIcon = (mode: string) => {
+    switch (mode?.toLowerCase()) {
+      case 'online':
+        return <Globe className="w-5 h-5 text-green-400" />;
+      case 'offline':
+        return <MapPin className="w-5 h-5 text-blue-400" />;
+      case 'hybrid':
+        return <Globe className="w-5 h-5 text-purple-400" />;
+      default:
+        return <MapPin className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  const getModeColor = (mode: string) => {
+    switch (mode?.toLowerCase()) {
+      case 'online':
+        return 'bg-green-400/20 text-green-400 border-green-400/30';
+      case 'offline':
+        return 'bg-blue-400/20 text-blue-400 border-blue-400/30';
+      case 'hybrid':
+        return 'bg-purple-400/20 text-purple-400 border-purple-400/30';
+      default:
+        return 'bg-gray-400/20 text-gray-400 border-gray-400/30';
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-[#0f172a] min-h-screen flex items-center justify-center px-4">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-neon-blue/30 border-t-neon-blue rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white">Loading event details...</p>
+        </div>
       </div>
     );
   }
@@ -117,14 +213,22 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
   if (!event) {
     return (
       <div className="bg-[#0f172a] min-h-screen flex items-center justify-center px-4">
-        <div className="text-red-500 text-xl text-center">Event not found</div>
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Event Not Found</h2>
+          <button
+            onClick={handleBackToDashboard}
+            className="px-6 py-3 bg-neon-blue text-white rounded-lg hover:bg-neon-blue/80 transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#0f172a] min-h-screen flex flex-col">
-      {/* Header - matching Dashboard style */}
+    <div className="bg-gradient-to-br from-gray-900 via-[#0f172a] to-gray-800 min-h-screen">
+      {/* Header */}
       <div className="relative z-40 glass-panel border-b border-white/10 bg-[#0f172a]/90 backdrop-blur-sm">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
@@ -132,34 +236,27 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
               <button
                 onClick={handleBackToDashboard}
                 aria-label="Back to Dashboard"
-                className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm
-                  border border-white/20 rounded-full hover:border-neon-blue/50
-                  hover:shadow-glow transition-all duration-300 group flex-shrink-0"
+                className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm border border-white/20 rounded-full hover:border-neon-blue/50 hover:shadow-glow transition-all duration-300 group flex-shrink-0"
               >
                 <ArrowLeft
                   className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors"
                   aria-hidden="true"
                 />
               </button>
-              <h1 className="text-2xl font-bold text-white glow-text truncate hover:text-neon-blue transition-colors">
+              <h1 className="text-2xl font-bold text-white truncate hover:text-neon-blue transition-colors">
                 Event Details
               </h1>
             </div>
 
-            {/* User Account Dropdown - matching Dashboard style */}
+            {/* User Account Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowUserDropdown((show) => !show)}
                 aria-haspopup="true"
                 aria-expanded={showUserDropdown}
-                className="flex items-center space-x-2 px-3 py-2 bg-glass-bg backdrop-blur-sm
-                  border border-white/20 rounded-full hover:border-neon-blue/50
-                  hover:shadow-glow transition-all duration-300 group"
+                className="flex items-center space-x-2 px-3 py-2 bg-glass-bg backdrop-blur-sm border border-white/20 rounded-full hover:border-neon-blue/50 hover:shadow-glow transition-all duration-300 group"
               >
-                <div
-                  className="w-8 h-8 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full
-                    flex items-center justify-center text-white font-semibold text-sm select-none"
-                >
+                <div className="w-8 h-8 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-white font-semibold text-sm select-none">
                   {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <ChevronDown className="w-4 h-4 text-white group-hover:text-neon-blue" />
@@ -167,22 +264,14 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
 
               {showUserDropdown && (
                 <>
-                  {/* Overlay to block content interaction */}
                   <div
                     className="fixed inset-0 z-[999]"
                     onClick={() => setShowUserDropdown(false)}
                   />
-                  {/* Dropdown Menu */}
-                  <div
-                    className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-gray-900/95 backdrop-blur-md
-                      border border-white/20 rounded-2xl shadow-2xl z-[1000] overflow-hidden"
-                  >
+                  <div className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-gray-900/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl z-[1000] overflow-hidden">
                     <div className="bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 px-6 py-4 border-b border-white/10">
                       <div className="flex items-center space-x-4">
-                        <div
-                          className="w-12 h-12 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full
-                            flex items-center justify-center text-white font-bold text-lg select-none"
-                        >
+                        <div className="w-12 h-12 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-white font-bold text-lg select-none">
                           {user?.email
                             ? user.email.charAt(0).toUpperCase()
                             : "U"}
@@ -194,10 +283,7 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
                           <p className="text-gray-400 text-sm truncate">
                             {user?.email || "user@example.com"}
                           </p>
-                          <span
-                            className="inline-block px-2 py-1 rounded-full text-xs font-medium mt-1
-                              bg-neon-blue/20 text-neon-blue select-none"
-                          >
+                          <span className="inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 bg-neon-blue/20 text-neon-blue select-none">
                             Student
                           </span>
                         </div>
@@ -209,13 +295,14 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
                           setShowUserDropdown(false);
                           navigate("/account", { state: { email: user?.email } });
                         }}
-                        className="w-full px-6 py-3 text-left text-white hover:bg-white/10
-                          flex items-center space-x-3 transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-neon-blue"
+                        className="w-full px-6 py-3 text-left text-white hover:bg-white/10 flex items-center space-x-3"
                       >
-                        <User className="w-5 h-5 text-neon-blue flex-shrink-0" />
+                        <User className="w-5 h-5 text-neon-blue" />
                         <div>
                           <p className="font-medium">Account Details</p>
-                          <p className="text-xs text-gray-400">View and manage your profile</p>
+                          <p className="text-xs text-gray-400">
+                            View and manage your profile
+                          </p>
                         </div>
                       </button>
                       <button
@@ -223,25 +310,27 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
                           setShowUserDropdown(false);
                           navigate("/profile");
                         }}
-                        className="w-full px-6 py-3 text-left text-white hover:bg-white/10
-                          flex items-center space-x-3 transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-neon-purple"
+                        className="w-full px-6 py-3 text-left text-white hover:bg-white/10 flex items-center space-x-3"
                       >
-                        <Settings className="w-5 h-5 text-neon-purple flex-shrink-0" />
+                        <Settings className="w-5 h-5 text-neon-purple" />
                         <div>
                           <p className="font-medium">Profile</p>
-                          <p className="text-xs text-gray-400">Manage your preferences</p>
+                          <p className="text-xs text-gray-400">
+                            Manage your preferences
+                          </p>
                         </div>
                       </button>
                       <div className="border-t border-white/10 my-2"></div>
                       <button
                         onClick={handleLogout}
-                        className="w-full px-6 py-3 text-left text-red-400 hover:bg-red-500/10
-                          flex items-center space-x-3 transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-red-400"
+                        className="w-full px-6 py-3 text-left text-red-400 hover:bg-red-500/10 flex items-center space-x-3"
                       >
-                        <LogOut className="w-5 h-5 flex-shrink-0" />
+                        <LogOut className="w-5 h-5" />
                         <div>
                           <p className="font-medium">Sign Out</p>
-                          <p className="text-xs text-red-300">Logout from your account</p>
+                          <p className="text-xs text-red-300">
+                            Logout from your account
+                          </p>
                         </div>
                       </button>
                     </div>
@@ -254,166 +343,158 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
       </div>
 
       {/* Main Content */}
-      <main className="bg-gradient-to-br from-gray-900 via-[#0f172a] to-gray-800 flex-grow text-white">
-        {/* Image */}
-        <div className="relative">
-          <img
-            src={event.img_url}
-            alt={event.title}
-            className="w-full max-h-60 sm:max-h-96 object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        </div>
+      <main className="text-white">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            
+            {/* Hero Section */}
+            <div className="glass-panel rounded-2xl border border-neon-blue/20 overflow-hidden mb-8">
+              <div className="relative h-64 md:h-80">
+                <img 
+                  src={event.img_url}
+                  alt={event.title}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                
+                {/* Event Title */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${getModeColor(event.mode)} border backdrop-blur-sm mb-4`}>
+                    {getModeIcon(event.mode)}
+                    <span className="capitalize">{event.mode} Event</span>
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                    {event.title}
+                  </h1>
+                </div>
+              </div>
+            </div>
 
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-12 max-w-4xl">
-          {/* Title */}
-          <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold">{event.title}</h1>
+            {/* About Event */}
+            <div className="glass-panel p-6 rounded-2xl border border-white/10 mb-8">
+              <h2 className="text-2xl font-bold text-white mb-4">About This Event</h2>
+              <p className="text-gray-300 leading-relaxed whitespace-pre-line break-words">
+                {event.description}
+              </p>
+            </div>
+
+            {/* Event Information */}
+            <div className="glass-panel p-6 rounded-2xl border border-neon-blue/20 mb-8">
+              <h3 className="text-xl font-bold text-white mb-6">Event Information</h3>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-5 h-5 " />
+                  <div>
+                    <p className="text-white font-medium">{new Date(event.date).toLocaleDateString()}</p>
+                    <p className="text-gray-400 text-sm">Date</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <Clock className="w-5 h-5 " />
+                  <div>
+                    <p className="text-white font-medium">{event.time}</p>
+                    <p className="text-gray-400 text-sm">Time</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <MapPin className="w-5 h-5 " />
+                  <div>
+                    <p className="text-white font-medium">{event.venue}</p>
+                    <p className="text-gray-400 text-sm">Venue</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <Users className="w-5 h-5 " />
+                  <div>
+                    <p className="text-white font-medium">{event.max_participants}</p>
+                    <p className="text-gray-400 text-sm">Slots Available</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <Phone className="w-5 h-5 " />
+                  <div>
+                    <p className="text-white font-medium">{event.contact_1}</p>
+                    <p className="text-gray-400 text-sm">Contact 1</p>
+                  </div>
+                </div>
+                
+                {event.contact_2 && (
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5 " />
+                    <div>
+                      <p className="text-white font-medium">{event.contact_2}</p>
+                      <p className="text-gray-400 text-sm">Contact 2</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Enrollment Section */}
+            {!isEnrolled && event.max_participants > 0 && (
+              <div className="glass-panel p-6 rounded-2xl border border-neon-purple/20 mb-8">
+                <h3 className="text-xl font-bold text-white mb-4">Ready to Join?</h3>
+                <p className="text-gray-300 text-sm mb-6">
+                  Secure your spot in this exclusive event. Limited seats available!
+                </p>
+                
+                <button
+                  onClick={() => setShowEnrollModal(true)}
+                  className="w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow transition-all duration-300 transform hover:scale-105"
+                >
+                  Enroll Now
+                </button>
+                
+                <p className="text-xs text-gray-400 mt-3 text-center">
+                  {event.max_participants} spots remaining • Click to secure your participation
+                </p>
+              </div>
+            )}
+
+            {/* Success State */}
+            {isEnrolled && (
+              <div className="glass-panel p-6 rounded-2xl border border-green-400/20 mb-8">
+                <h3 className="text-xl font-bold text-white mb-4">✅ Enrolled Successfully!</h3>
+                <p className="text-gray-300 text-sm">
+                  You're all set for this event. Check your email for confirmation details.
+                </p>
+              </div>
+            )}
+
           </div>
-
-          {/* Description */}
-          <section className="mb-12">
-            <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-xl font-semibold mb-3 text-gray-200">About The Event</h2>
-              <p className="text-gray-300 leading-relaxed whitespace-pre-line">{event.description}</p>
-            </div>
-          </section>
-
-          {/* Info Grid */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            {/* Left */}
-            <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700">
-              <h3 className="text-lg font-semibold mb-4 text-gray-200">Details</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-blue-400">📅</span>
-                  <div>
-                    <span className="text-white font-medium">Date: </span>
-                    <span className="text-gray-300">
-                      {new Date(event.date).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-purple-400">🕒</span>
-                  <div>
-                    <span className="text-white font-medium">Time: </span>
-                    <span className="text-gray-300">{event.time}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-green-400">📍</span>
-                  <div>
-                    <span className="text-white font-medium">Venue: </span>
-                    <span className="text-gray-300">{event.venue}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-orange-400">📺</span>
-                  <div>
-                    <span className="text-white font-medium">Mode: </span>
-                    <span className="text-gray-300">{event.mode}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right */}
-            <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700 flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-gray-200">Contact & Availability</h3>
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-3">
-                    <span className="text-blue-400">📧</span>
-                    <div>
-                      <span className="text-white font-medium">Contact 1: </span>
-                      <span className="text-gray-300 break-words">{event.contact_1}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-green-400">📧</span>
-                    <div>
-                      <span className="text-white font-medium">Contact 2: </span>
-                      <span className="text-gray-300 break-words">{event.contact_2}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-yellow-400">🎟️</span>
-                    <div>
-                      <span className="text-white font-medium">Slots Available: </span>
-                      <span className="text-green-400 font-semibold">{event.max_participants}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowEnrollModal(true)}
-                className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 text-white font-medium transition-colors"
-              >
-                Enroll Now
-              </button>
-            </div>
-          </section>
         </div>
 
         {/* Enrollment Modal */}
         {showEnrollModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-            <div className="bg-gray-800 rounded-lg max-w-md w-full p-6 border border-gray-700">
+            <div className="bg-gray-800/95 backdrop-blur-md rounded-2xl max-w-md w-full p-6 border border-white/20">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-semibold mb-2 text-white">Confirm Enrollment</h2>
-                <p className="text-gray-400">Enter your credentials to enroll in this event</p>
+                <p className="text-gray-400">
+                  Are you sure you want to enroll in this event?
+                </p>
+                <p className="text-neon-blue font-medium mt-2">
+                  {event.title}
+                </p>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium mb-1 text-gray-300"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    className="w-full p-3 rounded bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium mb-1 text-gray-300"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    className="w-full p-3 rounded bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+              <div className="flex flex-col sm:flex-row justify-center gap-3 mt-6">
                 <button
                   onClick={() => setShowEnrollModal(false)}
-                  className="px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-600 transition-colors w-full sm:w-auto"
+                  className="px-6 py-3 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition-colors w-full sm:w-auto"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleEnroll}
-                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors w-full sm:w-auto"
+                  className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 w-full sm:w-auto"
                 >
-                  Enroll
+                  Confirm Enrollment
                 </button>
               </div>
             </div>

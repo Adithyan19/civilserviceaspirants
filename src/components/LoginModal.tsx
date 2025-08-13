@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { gsap } from 'gsap';
+import {jwtDecode} from 'jwt-decode';
+import { api } from '../utils/api';
+
+
+interface MyJwtPayload {
+  id: number;
+  email: string;
+  role: 'admin' | 'user';
+  name: string;
+  iat?: number;
+  exp?: number;
+}
 
 interface LoginModalProps {
   onSignupClick?: () => void;
@@ -8,7 +20,6 @@ interface LoginModalProps {
   onClose: () => void;
   onLogin: (credentials: {
     email: string;
-    password: string;
     role: 'admin' | 'user';
     name: string;
   }) => void;
@@ -46,31 +57,25 @@ const LoginModal: React.FC<LoginModalProps> = ({
   }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    const response = await api.post('/api/login',{ email: formData.email, password: formData.password });
+    const result = await response.data;
+    if (result.success) {
+    localStorage.setItem('token', result.token);
 
-    try {
-      const response = await fetch('http://localhost:5000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+    const decoded = jwtDecode<MyJwtPayload>(result.token);
 
-      const result = await response.json();
+    onLogin({
+      email: decoded.email,
+      role: decoded.role,
+      name: decoded.name || '',
+    });
 
-      if (result.success) {
-        const { email, role, id, name } = result.user;
-        if (id) {
-          localStorage.setItem('userId', id);
-        } else {
-          console.warn('No user ID found in login response');
-        }
-
-        onLogin({ email, password: formData.password, role, name });
-        setFormData({ email: '', password: '', role: 'user', name: '' });
-
-        onClose();
-      } else {
+    setFormData({ email: '', password: '', role: 'user', name: '' });
+    onClose();
+  } else {
         alert(result.error || 'Login failed');
       }
     } catch (error) {

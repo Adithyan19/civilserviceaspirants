@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { ArrowLeft, Edit2, Save, X, Eye, EyeOff } from 'lucide-react';
 import Footer from './Footer';
+import { api } from '../utils/api';
 
 interface User {
   id: string;
@@ -24,7 +24,6 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get email either from location.state or fallback to user prop
   const emailFromState = (location.state as { email?: string })?.email;
   const email = emailFromState || user?.email;
 
@@ -49,7 +48,8 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!email) {
+    const token = localStorage.getItem('token');
+    if (!token) {
       alert('User not logged in or email missing!');
       navigate('/');
       return;
@@ -58,7 +58,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
     const fetchUserDetails = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('http://localhost:5000/api/user', { params: { email } });
+        const res = await api.get('/api/user', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = res.data;
         setUserDetails({
           id: data.id,
@@ -82,20 +84,19 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
     };
 
     fetchUserDetails();
-  }, [email, navigate]);
+  }, [navigate]);
 
-  // ================== UPDATED FUNCTION: handleEditSubmit ==================
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      // ACTUAL API CALL TO BACKEND FOR UPDATE
-      const res = await axios.put('http://localhost:5000/api/user/update', {
-        email,
-        phone: editForm.phone,
-        year: editForm.year
-      });
+      const token = localStorage.getItem('token');
+      const res = await api.put(
+        '/api/user/update',
+        { phone: editForm.phone, year: editForm.year },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       if (userDetails) {
         setUserDetails({
@@ -112,7 +113,6 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
       setSaving(false);
     }
   };
-  // =======================================================================
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,25 +121,22 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
       alert('New passwords do not match!');
       return;
     }
-
     if (passwordForm.newPassword.length < 6) {
       alert('Password must be at least 6 characters long!');
       return;
     }
 
-    if (!email) {
-      alert('User email unavailable');
-      return;
-    }
-
     setSaving(true);
-
     try {
-      await axios.post('http://localhost:5000/api/user/change-password', {
-        email,
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-      });
+      const token = localStorage.getItem('token');
+      await api.post(
+        '/api/user/change-password',
+        {
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       alert('Password changed successfully!');
       setPasswordForm({

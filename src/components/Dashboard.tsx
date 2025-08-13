@@ -3,7 +3,6 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useNavigate } from 'react-router-dom';
 import Footer from './Footer';
-import axios from 'axios';
 import {
   Calendar,
   FileText,
@@ -17,7 +16,10 @@ import {
   LogOut,
   Menu,
   X,
+  Search, 
+  Filter,
 } from 'lucide-react';
+import { api } from '../utils/api';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -90,13 +92,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('TKMCE');
   const categories = ['Global', 'India', 'Kerala', 'TKMCE', 'Placement', 'UPSC'];
 
-  // Dropdown state for user menu
+  // Search & Filter states for EVENTS
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterMode, setFilterMode] = useState<'all' | 'online' | 'offline' | 'hybrid'>('all');
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
-  // Ref for dropdown to handle outside clicks
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Effect to close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -114,7 +116,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     };
   }, [showUserDropdown]);
 
-  // GSAP animation on mount
   useEffect(() => {
     gsap.fromTo(
       '.dashboard-header',
@@ -149,12 +150,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     );
   }, []);
 
-  // Handle logout
   const handleLogout = () => {
     setShowUserDropdown(false);
-    if (onLogout) {
-      onLogout();
-    }
+    if (onLogout) onLogout();
     alert('Logging out...');
     navigate('/');
   };
@@ -166,7 +164,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         setLoadingEvents(true);
         setErrorEvents(null);
         try {
-          const res = await axios.get<EventItem[]>('http://localhost:5000/api/getevents');
+          const res = await api.get<EventItem[]>('/api/getevents');
           setEvents(res.data);
         } catch {
           setErrorEvents('Failed to fetch events');
@@ -184,7 +182,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         setLoadingQP(true);
         setErrorQP(null);
         try {
-          const res = await axios.get<QuestionPaper[]>('http://localhost:5000/api/sendquestions');
+          const res = await api.get<QuestionPaper[]>('/api/sendquestions');
           setQuestionPapers(res.data);
         } catch {
           setErrorQP('Failed to fetch question papers');
@@ -202,7 +200,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         setLoadingNP(true);
         setErrorNP(null);
         try {
-          const res = await axios.get<Newspaper[]>('http://localhost:5000/api/sendnewspapers');
+          const res = await api.get<Newspaper[]>('/api/sendnewspapers');
           setNewspapers(res.data);
         } catch {
           setErrorNP('Failed to fetch newspapers');
@@ -220,7 +218,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         setLoadingNews(true);
         setErrorNews(null);
         try {
-          const res = await axios.get<NewsItem[]>('http://localhost:5000/api/getnews');
+          const res = await api.get<NewsItem[]>('/api/getnews');
           setNews(res.data);
         } catch {
           setErrorNews('Failed to fetch news');
@@ -231,7 +229,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [activeSection]);
 
-  // Set default selected category when news data updates or section changes
   useEffect(() => {
     if (activeSection === 'news') {
       const foundCategory = categories.find((cat) =>
@@ -248,92 +245,129 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     { id: 'news', label: 'News', icon: Globe },
   ];
 
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterMode === 'all' || event.mode.toLowerCase() === filterMode;
+    return matchesSearch && matchesFilter;
+  });
+
   const renderContent = () => {
     switch (activeSection) {
       case 'events':
-        if (loadingEvents) return <p className="text-gray-400 text-center py-8">Loading events...</p>;
-        if (errorEvents) return <p className="text-red-500 text-center py-8">{errorEvents}</p>;
+        if (loadingEvents)
+          return <p className="text-gray-400 text-center py-8">Loading events...</p>;
+        if (errorEvents)
+          return <p className="text-red-500 text-center py-8">{errorEvents}</p>;
         return (
-  <div className="max-w-lg sm:max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 space-y-6">
-    {events.map((event) => (
-      <div
-        key={event.id}
-        className="bg-gradient-to-br from-gray-800 to-gray-900/80 rounded-2xl shadow-xl border border-white/10 overflow-hidden w-full max-w-md mx-auto transition-all duration-500 transform hover:scale-[1.02] hover:shadow-2xl hover:border-neon-blue/30"
-      >
-        <img
-          src={event.img_url}
-          alt={event.title}
-          className="w-full h-40 sm:h-48 md:h-56 object-cover"
-        />
-        <div className="p-4 sm:p-6 flex flex-col gap-3 sm:gap-4 text-white">
-          <h3 className="text-lg sm:text-xl font-bold text-center leading-tight">{event.title}</h3>
-          <p className="text-gray-300 text-xs sm:text-sm text-center leading-relaxed px-2">
-            {event.description.length > 100
-              ? event.description.substring(0, 100) + '...'
-              : event.description}
-          </p>
-
-          {/* Event details */}
-          <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0 text-xs sm:text-sm">
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <span className="text-neon-blue text-lg flex-shrink-0">📅</span>
-                <div>
-                  <span className="text-white font-semibold block">Date</span>
-                  <span className="text-gray-300">
-                    {new Date(event.date).toLocaleDateString('en-US', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-neon-purple text-lg flex-shrink-0">🕒</span>
-                <div>
-                  <span className="text-white font-semibold block">Time</span>
-                  <span className="text-gray-300">{event.time}</span>
-                </div>
-              </div>
+          <div className="max-w-lg sm:max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 space-y-6">
+            {/* Search + Filter Bar */}
+            <div className="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto mb-6">
+            {/* Search with Icon */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search events..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50"
+              />
             </div>
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <span className="text-orange-400 text-lg flex-shrink-0">📺</span>
-                <div>
-                  <span className="text-white font-semibold block">Mode</span>
-                  <span className="text-gray-300">{event.mode}</span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-green-400 text-lg flex-shrink-0">📍</span>
-                <div>
-                  <span className="text-white font-semibold block">Venue</span>
-                  <span className="text-gray-300 break-words">{event.venue}</span>
-                </div>
-              </div>
+
+            {/* Filter with Icon */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                value={filterMode}
+                onChange={(e) => setFilterMode(e.target.value as any)}
+                className="pl-10 pr-8 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50 appearance-none"
+              >
+                <option className="bg-[#0f172a]" value="all">All Events</option>
+                <option className="bg-[#0f172a]" value="online">Online</option>
+                <option className="bg-[#0f172a]" value="offline">Offline</option>
+                <option className="bg-[#0f172a]" value="hybrid">Hybrid</option>
+              </select>
             </div>
           </div>
 
-          {/* Bottom section */}
-          <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-3 pt-3 border-t border-white/10">
-            <span className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
-              🎟 Max Participants: <span className="text-white font-semibold">{event.max_participants}</span>
-            </span>
-            <button
-              onClick={() => navigate(`/event/${event.id}`)}
-              className="w-full sm:w-auto bg-neon-blue hover:bg-neon-blue/80 px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 min-w-[110px]"
-            >
-              Enroll Now
-            </button>
+            {filteredEvents.map((event) => (
+              <div
+                key={event.id}
+                className="bg-gradient-to-br from-gray-800 to-gray-900/80 rounded-2xl shadow-xl border border-white/10 overflow-hidden w-full max-w-md mx-auto transition-all duration-500 transform hover:scale-[1.02] hover:shadow-2xl hover:border-neon-blue/30"
+              >
+                <img
+                  src={event.img_url}
+                  alt={event.title}
+                  className="w-full h-40 sm:h-48 md:h-56 object-cover"
+                />
+                <div className="p-4 sm:p-6 flex flex-col gap-3 sm:gap-4 text-white">
+                  <h3 className="text-lg sm:text-xl font-bold text-center leading-tight">
+                    {event.title}
+                  </h3>
+                  <p className="text-gray-300 text-xs sm:text-sm text-center leading-relaxed px-2">
+                    {event.description.length > 40
+                      ? event.description.substring(0, 40) + '...'
+                      : event.description}
+                  </p>
+                  <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0 text-xs sm:text-sm">
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-neon-blue text-lg">📅</span>
+                        <div>
+                          <span className="text-white font-semibold block">Date</span>
+                          <span className="text-gray-300">
+                            {new Date(event.date).toLocaleDateString('en-US', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-neon-purple text-lg">🕒</span>
+                        <div>
+                          <span className="text-white font-semibold block">Time</span>
+                          <span className="text-gray-300">{event.time}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-orange-400 text-lg">📺</span>
+                        <div>
+                          <span className="text-white font-semibold block">Mode</span>
+                          <span className="text-gray-300 capitalize">{event.mode}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-green-400 text-lg">📍</span>
+                        <div>
+                          <span className="text-white font-semibold block">Venue</span>
+                          <span className="text-gray-300 break-words">{event.venue}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-3 pt-3 border-t border-white/10">
+                    <span className="text-gray-400 text-xs sm:text-sm">
+                      🎟 Max Participants:{" "}
+                      <span className="text-white font-semibold">{event.max_participants}</span>
+                    </span>
+                    <button
+                      onClick={() => navigate(`/dashboard/event/${event.id}`)}
+                      className="w-full sm:w-auto bg-neon-blue hover:bg-neon-blue/80 px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 min-w-[110px]"
+                    >
+                      Enroll Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-
+        );
       case 'questions':
         if (loadingQP) return <p className="text-gray-400 text-center py-8">Loading question papers...</p>;
         if (errorQP) return <p className="text-red-500 text-center py-8">{errorQP}</p>;

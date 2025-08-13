@@ -146,7 +146,7 @@ const OurTeam: React.FC = () => {
         <div className="text-center">
           <button
             onClick={() => navigate('/team')}
-            className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-full shadow-glow hover:shadow-neon transform hover:scale-105 transition-all duration-300"
+            className="px-8 py-4 bg-white text-black font-semibold rounded-full hover:bg-gray-200 hover:scale-105 transition-all duration-300 inline-flex items-center justify-center space-x-3 mx-auto lg:mx-0"
           >
             <span>Meet Our Team</span>
             <ArrowRight className="w-5 h-5" />
