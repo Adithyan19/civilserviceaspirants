@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Edit2, Save, X, Eye, EyeOff } from "lucide-react";
 import Footer from "./Footer";
 import { api } from "../utils/api";
+import { useToast } from "./ToastContext"; // Import toast hook
+import axios from "axios";
 
 interface User {
   id: string;
@@ -23,6 +25,8 @@ interface AccountDetailsProps {
 const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { showError, showSuccess } = useToast(); // Use toast hook
 
   const emailFromState = (location.state as { email?: string })?.email;
   const email = emailFromState || user?.email;
@@ -50,7 +54,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("User not logged in or email missing!");
+      showError("User not logged in or email missing!");
       navigate("/");
       return;
     }
@@ -76,15 +80,15 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
           phone: data.phone,
           year: data.year,
         });
-      } catch (err) {
-        alert("Failed to fetch user details.");
+      } catch (err: unknown) {
+        showError("Failed to fetch user details.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserDetails();
-  }, [navigate]);
+  }, [navigate, showError]);
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,9 +110,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
         });
       }
       setIsEditing(false);
-      alert("Profile updated successfully!");
+      showSuccess("Profile updated successfully!");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to update profile.");
+      showError(err.response?.data?.error || "Failed to update profile.");
     } finally {
       setSaving(false);
     }
@@ -118,11 +122,11 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
     e.preventDefault();
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert("New passwords do not match!");
+      showError("New passwords do not match!");
       return;
     }
     if (passwordForm.newPassword.length < 6) {
-      alert("Password must be at least 6 characters long!");
+      showError("Password must be at least 6 characters long!");
       return;
     }
 
@@ -138,7 +142,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      alert("Password changed successfully!");
+      showSuccess("Password changed successfully!");
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
@@ -146,7 +150,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
       });
       setIsChangingPassword(false);
     } catch (error: any) {
-      alert(error.response?.data?.error || "Failed to change password");
+      showError(error.response?.data?.error || "Failed to change password");
     } finally {
       setSaving(false);
     }
@@ -247,7 +251,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                     </label>
                     <input
                       type="email"
-                      value={email}
+                      value={email || ""}
                       disabled
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
                     />
@@ -285,19 +289,19 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ user, onLogout }) => {
                       }
                       required
                       className="
-                        w-full px-4 py-3 
-                        bg-glass-bg bg-opacity-70 
-                        border border-white/20 
-                        rounded-xl  
-                        text-white 
-                        focus:border-neon-blue 
-                        focus:outline-none 
-                        appearance-none 
-                        cursor-pointer
-                        transition-all duration-300 
-                        hover:border-neon-blue/70
-                        backdrop-blur-md shadow-inner
-                      "
+                            w-full px-4 py-3 
+                            bg-glass-bg bg-opacity-70 
+                            border border-white/20 
+                            rounded-xl  
+                            text-white 
+                            focus:border-neon-blue 
+                            focus:outline-none 
+                            appearance-none 
+                            cursor-pointer
+                            transition-all duration-300 
+                            hover:border-neon-blue/70
+                            backdrop-blur-md shadow-inner
+                          "
                       style={{
                         backgroundImage: `url("data:image/svg+xml,%3csvg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e")`,
                         backgroundRepeat: "no-repeat",

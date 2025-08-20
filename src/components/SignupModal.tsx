@@ -12,6 +12,8 @@ import {
   Lock,
 } from "lucide-react";
 import { api } from "../utils/api";
+import { useToast } from "./ToastContext"; // Import toast hook
+import axios from "axios";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -21,6 +23,8 @@ interface SignupModalProps {
 const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const { showError, showSuccess } = useToast(); // Use toast hook
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -108,12 +112,10 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
 
   // Enhanced close function to ensure scroll is restored
   const handleClose = () => {
-    // Immediately restore scrolling
     document.body.style.overflow = originalBodyOverflow.current || "unset";
     document.documentElement.style.overflow =
       originalHtmlOverflow.current || "unset";
 
-    // Call parent close function
     onClose();
   };
 
@@ -141,7 +143,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     if (formData.pass !== formData.confpass) {
-      alert("Passwords mismatch");
+      showError("Passwords do not match.");
       setIsSubmitting(false);
       return;
     }
@@ -151,7 +153,6 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       const data = response.data;
 
       if (!data.success) {
-        // Use data.error if exists or fallback message
         throw new Error("Signup failed: " + (data.error || "Unknown error"));
       }
 
@@ -176,15 +177,26 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         confpass: "",
       });
 
+      showSuccess(
+        "🎉 Registration successful! Welcome to the Civil Servants Club.",
+      );
+
       setTimeout(() => {
         handleClose();
-        alert(
-          "🎉 Registration successful! Welcome to the Civil Servants Club.",
-        );
       }, 800);
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      alert("❌ Something went wrong. Please try again. \n" + errorMsg);
+    } catch (error: unknown) {
+      let errorMsg = "Something went wrong. Please try again.";
+      if (axios.isAxiosError(error) && error.response) {
+        errorMsg =
+          error.response.data?.error ||
+          error.response.data?.message ||
+          `${errorMsg}\nRequest failed with status code ${error.response.status}`;
+      } else if (error instanceof Error) {
+        errorMsg += "\n" + error.message;
+      } else {
+        errorMsg += "\n" + String(error);
+      }
+      showError(errorMsg);
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -353,13 +365,17 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                 <option value="" className="text-black">
                   Select Year
                 </option>
-                {["1st Year", "2nd Year", "3rd Year", "4th Year", "Alumni"].map(
-                  (year) => (
-                    <option key={year} value={year} className="text-black">
-                      {year}
-                    </option>
-                  ),
-                )}
+                {[
+                  "1st Year",
+                  "2nd Year",
+                  "3rd Year",
+                  "4th Year",
+                  "5th Year(Arch)",
+                ].map((year) => (
+                  <option key={year} value={year} className="text-black">
+                    {year}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -369,9 +385,10 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                 name="interests"
                 value={formData.interests}
                 onChange={handleInputChange}
+                required
                 rows={3}
                 className="w-full px-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition resize-none"
-                placeholder="Tell us about your interests in civil services (optional)"
+                placeholder="Tell us about your interests"
               />
             </div>
           </div>

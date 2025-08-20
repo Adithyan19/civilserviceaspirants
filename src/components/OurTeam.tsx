@@ -61,34 +61,19 @@ const OurTeam: React.FC = () => {
 
   const teamMembers = [
     {
-      name: "Arjun Krishna",
-      position: "Chairperson",
-      image:
-        "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400",
+      name: "Brindha R K",
+      position: "Club Ambassador",
+      image: "",
     },
     {
-      name: "Priya Nair",
-      position: "Vice Chairperson",
-      image:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400",
+      name: "Ashwin M G",
+      position: "Club Ambassador",
+      image: "/Ashwin M G.jpg",
     },
     {
-      name: "Rahul Menon",
-      position: "Web Head",
-      image:
-        "https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=400",
-    },
-    {
-      name: "Sneha Pillai",
-      position: "Design Head",
-      image:
-        "https://images.pexels.com/photos/1181519/pexels-photo-1181519.jpeg?auto=compress&cs=tinysrgb&w=400",
-    },
-    {
-      name: "Vishnu Kumar",
-      position: "Documentation Head",
-      image:
-        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400",
+      name: "Rameez",
+      position: "Student Head",
+      image: "",
     },
   ];
 
@@ -120,7 +105,7 @@ const OurTeam: React.FC = () => {
         {/* Team Members Grid */}
         <div
           ref={cardsRef}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8 mb-12"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 md:gap-8 mb-12"
         >
           {teamMembers.map((member, index) => (
             <div key={index} className="group text-center">

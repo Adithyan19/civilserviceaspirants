@@ -143,9 +143,11 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
           <div className="flex items-center space-x-4 mb-6">
             <button
               onClick={() => navigate("/")}
-              className="flex items-center space-x-2 text-white hover:text-neon-blue"
+              className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm
+               border border-white/20 rounded-full hover:border-neon-blue/50
+               hover:shadow-glow transition-all duration-300 group absolute left-6 top-1/2 -translate-y-1/2"
             >
-              <ArrowLeft className="w-5 h-5" /> <span>Back to Home</span>
+              <ArrowLeft className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors" />
             </button>
           </div>
           <div className="text-center mb-8">

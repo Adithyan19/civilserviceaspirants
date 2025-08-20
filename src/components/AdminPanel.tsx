@@ -12,6 +12,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { api } from "../utils/api";
+import { useToast } from "./ToastContext"; // Import toast hook
+import axios from "axios";
 
 interface AdminPanelProps {
   onLogout?: () => void;
@@ -57,6 +59,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   const [coverPhotoFile, setCoverPhotoFile] = React.useState<File | null>(null);
   const [isEventUploading, setIsEventUploading] = React.useState(false);
 
+  const { showError, showSuccess } = useToast(); // Use toast hook
+
   const tabs = [
     { id: "newspapers", label: "Newspapers", icon: Newspaper },
     { id: "questions", label: "Question Papers", icon: FileText },
@@ -69,7 +73,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   // --- Handlers ---
   const handleNewspaperSave = async () => {
     if (!newspaperTitle || !newspaperDate || !newspaperFile) {
-      alert("Please fill all fields and upload a PDF.");
+      showError("Please fill all fields and upload a PDF.");
       return;
     }
     setIsUploading(true);
@@ -82,15 +86,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
       await api.post("/api/admin/newspapers", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Newspaper saved successfully!");
+      showSuccess("Newspaper saved successfully!");
       setNewspaperTitle("");
       setNewspaperDate("");
       setNewspaperFile(null);
-    } catch (error) {
-      alert(
-        "Error uploading newspaper: " +
-          (error instanceof Error ? error.message : String(error)),
-      );
+    } catch (error: unknown) {
+      let errorMsg = "Error uploading newspaper: ";
+      if (axios.isAxiosError(error) && error.response) {
+        errorMsg +=
+          error.response.data?.error ||
+          error.response.data?.message ||
+          `${errorMsg}Request failed with status code ${error.response.status}`;
+      } else if (error instanceof Error) {
+        errorMsg += error.message;
+      } else {
+        errorMsg += String(error);
+      }
+      showError(errorMsg);
     } finally {
       setIsUploading(false);
     }
@@ -98,7 +110,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
   const handleQuestionPaperSave = async () => {
     if (!examTitle || !examYear || !questionPaperFile) {
-      alert("Please fill all fields and upload a PDF.");
+      showError("Please fill all fields and upload a PDF.");
       return;
     }
     setIsUploading(true);
@@ -111,17 +123,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
       await api.post("/api/admin/questionpapers", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Question paper saved successfully!");
+      showSuccess("Question paper saved successfully!");
       setExamTitle("");
       setExamYear("");
       setExamCategory("");
       setExamSubject("");
       setQuestionPaperFile(null);
-    } catch (error) {
-      alert(
-        "Error uploading question paper: " +
-          (error instanceof Error ? error.message : String(error)),
-      );
+    } catch (error: unknown) {
+      let errorMsg = "Error uploading question paper: ";
+      if (axios.isAxiosError(error) && error.response) {
+        errorMsg +=
+          error.response.data?.error ||
+          error.response.data?.message ||
+          `${errorMsg}Request failed with status code ${error.response.status}`;
+      } else if (error instanceof Error) {
+        errorMsg += error.message;
+      } else {
+        errorMsg += String(error);
+      }
+      showError(errorMsg);
     } finally {
       setIsUploading(false);
     }
@@ -129,7 +149,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
   const handleNewsSubmit = async () => {
     if (!newsTitle || !newsUrl || !newsCategory) {
-      alert("Please enter both title and link.");
+      showError("Please enter both title and link.");
       return;
     }
     setIsSubmitting(true);
@@ -145,11 +165,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      alert("News published successfully!");
+      showSuccess("News published successfully!");
       setNewsTitle("");
       setNewsUrl("");
-    } catch (err) {
-      alert("Error: " + (err instanceof Error ? err.message : String(err)));
+    } catch (err: unknown) {
+      let errorMsg = "Error: ";
+      if (axios.isAxiosError(err) && err.response) {
+        errorMsg +=
+          err.response.data?.error ||
+          err.response.data?.message ||
+          `Request failed with status code ${err.response.status}`;
+      } else if (err instanceof Error) {
+        errorMsg += err.message;
+      } else {
+        errorMsg += String(err);
+      }
+      showError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -178,7 +209,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
       !eventForm.organizerContact2 ||
       !eventForm.date
     ) {
-      alert("Please fill all required fields including date.");
+      showError("Please fill all required fields including date.");
       return;
     }
     setIsEventUploading(true);
@@ -202,7 +233,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      alert("Event created successfully!");
+      showSuccess("Event created successfully!");
       setEventForm({
         coverPhoto: "",
         name: "",
@@ -216,11 +247,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
         date: "",
       });
       setCoverPhotoFile(null);
-    } catch (err) {
-      alert(
-        "Error creating event: " +
-          (err instanceof Error ? err.message : String(err)),
-      );
+    } catch (err: unknown) {
+      let errorMsg = "Error creating event: ";
+      if (axios.isAxiosError(err) && err.response) {
+        errorMsg +=
+          err.response.data?.error ||
+          err.response.data?.message ||
+          `Request failed with status code ${err.response.status}`;
+      } else if (err instanceof Error) {
+        errorMsg += err.message;
+      } else {
+        errorMsg += String(err);
+      }
+      showError(errorMsg);
     } finally {
       setIsEventUploading(false);
     }
@@ -554,7 +593,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
           />
         </div>
 
-        {/* Event Date - NEW */}
+        {/* Event Date */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Event Date

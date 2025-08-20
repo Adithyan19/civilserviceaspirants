@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { gsap } from "gsap";
 import Footer from "./Footer";
 
@@ -43,97 +43,154 @@ const TeamPage: React.FC = () => {
 
   const allTeamMembers = [
     {
-      name: "Arjun Krishna",
-      position: "Chairperson",
-      image:
-        "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "chairperson@civilservants.tkmce.ac.in",
-      phone: "9876543210",
+      name: "Ashwin M G",
+      position: "Club Ambassador",
+      image: "/Ashwin M G.jpg",
     },
     {
-      name: "Priya Nair",
-      position: "Vice Chairperson",
-      image:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "vicechairperson@civilservants.tkmce.ac.in",
-      phone: "9876543211",
+      name: "Brindha R K",
+      position: "Club Ambassador",
+      image: "",
     },
     {
-      name: "Rahul Menon",
-      position: "Web Head",
-      image:
-        "https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "webhead@civilservants.tkmce.ac.in",
-      phone: "9876543212",
+      name: "Rameez",
+      position: "Club Ambassador",
+      image: "",
     },
     {
-      name: "Sneha Pillai",
+      name: "Nafih Koya",
+      position: "Program Coordinator Head",
+      image: "/NAFIH KOYA VM.jpg",
+    },
+    {
+      name: "Safanath",
+      position: "Program Coordinator",
+      image: "/SAFANATH.jpg",
+    },
+    {
+      name: "Vaishnavi",
+      position: "Program Coordinator",
+      image: "/G S Vaishnavi .jpg",
+    },
+    {
+      name: "Amin",
+      position: "Program Coordinator",
+      image: "",
+    },
+    {
+      name: "Sinan",
       position: "Design Head",
-      image:
-        "https://images.pexels.com/photos/1181519/pexels-photo-1181519.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "designhead@civilservants.tkmce.ac.in",
-      phone: "9876543213",
+      image: "/MUHAMMED SINAN TP .jpg",
     },
     {
-      name: "Vishnu Kumar",
-      position: "Documentation Head",
-      image:
-        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "dochead@civilservants.tkmce.ac.in",
-      phone: "9876543214",
+      name: "Aswani",
+      position: "Design Team",
+      image: "",
     },
     {
-      name: "Anjali Raj",
-      position: "Event Coordinator",
-      image:
-        "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "events@civilservants.tkmce.ac.in",
-      phone: "9876543215",
+      name: "Shehina",
+      position: "Design Team",
+      image: "/Shehina.jpg",
     },
     {
-      name: "Kiran Das",
+      name: "Abel Joseph",
+      position: "Content and Doc Head",
+      image: "",
+    },
+    {
+      name: "Niveditha",
+      position: "Content and Doc Team",
+      image: "/Niveditha S Nair.jpg",
+    },
+    {
+      name: "Aliya",
+      position: "Content and Doc Team",
+      image: "/ALIYA. S.jpg",
+    },
+    {
+      name: "Krishnendu",
+      position: "Content and Doc Team",
+      image: "",
+    },
+    {
+      name: "Bibin",
+      position: "Public Relations Head",
+      image: "",
+    },
+    {
+      name: "Abhay ",
+      position: "Public Relations Vice Head",
+      image: "",
+    },
+    {
+      name: "Siva Prasad",
       position: "Public Relations",
-      image:
-        "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "pr@civilservants.tkmce.ac.in",
-      phone: "9876543216",
+      image: "/sivaprasad.jpg",
     },
     {
-      name: "Meera Krishnan",
-      position: "Content Head",
-      image:
-        "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "content@civilservants.tkmce.ac.in",
-      phone: "9876543217",
+      name: "Anagha Anilkumar",
+      position: "Public Relations",
+      image: "/anagha.jpg",
     },
     {
-      name: "Arun Nair",
+      name: "Rani Shaibhya",
+      position: "Public Relations",
+      image: "/RANI SHAIBHYA.jpg",
+    },
+    {
+      name: "Yaseen",
+      position: "Inquisitive Head",
+      image: "/YASEEN.jpg",
+    },
+    {
+      name: "Krishnapriya",
+      position: "Inquisitive Team",
+      image: "/KRISHNAPRIYA KK.jpg",
+    },
+    {
+      name: "Hridhya",
+      position: "Inquisitive Team",
+      image: "/Hridhya S B.jpg",
+    },
+    {
+      name: "Adithyan",
+      position: "Tech Head",
+      image: "/Adithyan.jpg",
+    },
+    {
+      name: "Danish",
+      position: "Tech Team",
+      image: "/Danish.jpg",
+    },
+    {
+      name: "Ananda Lakshmi",
       position: "Finance Head",
-      image:
-        "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: "finance@civilservants.tkmce.ac.in",
-      phone: "9876543218",
+      image: "",
+    },
+    {
+      name: "Afnan",
+      position: "Finance Team",
+      image: "",
     },
   ];
 
   return (
     <div className="bg-[#0f172a] min-h-screen flex flex-col">
       {/* Header */}
-      <div className="team-header glass-panel border-b border-white/10">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-white hover:text-neon-blue transition-colors text-sm"
-              aria-label="Back to Home"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back to Home</span>
-            </button>
-            <h1 className="text-3xl font-extrabold text-white  text-center sm:text-left whitespace-nowrap">
-              Our Team
-            </h1>
-          </div>
+      <div className="team-header glass-panel border-b border-white/10 relative">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 relative flex items-center justify-center">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm border border-white/20 rounded-full hover:border-neon-blue/50 hover:shadow-glow transition-all duration-300 group absolute left-6"
+          >
+            <ArrowLeft className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors" />
+          </button>
+
+          {/* Centered Title */}
+          <h1 className="text-3xl font-extrabold text-white text-center">
+            Our Team
+          </h1>
         </div>
       </div>
 
@@ -154,7 +211,7 @@ const TeamPage: React.FC = () => {
             {allTeamMembers.map((member, index) => (
               <div
                 key={index}
-                className="team-member-card glass-panel border border-white/10 rounded-3xl p-6 text-center overflow-hidden transition-shadow duration-300 hover:shadow-lg hover:shadow-neon"
+                className="team-member-card glass-panel border border-white/10 rounded-3xl p-6 text-center overflow-hidden transition-shadow duration-300 hover:shadow-lg"
               >
                 <div className="relative mx-auto w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white/10 transition-colors duration-300 hover:border-neon-blue">
                   <img
@@ -180,29 +237,6 @@ const TeamPage: React.FC = () => {
                 <p className="mt-1 text-sm text-gray-400 truncate">
                   {member.position}
                 </p>
-
-                <div className="mt-4 flex flex-col items-center gap-2 text-gray-400 text-sm">
-                  <a
-                    href={`mailto:${member.email}`}
-                    className="flex items-center gap-2 hover:text-white transition-colors break-words max-w-full"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Email ${member.name}`}
-                  >
-                    <Mail className="w-5 h-5 flex-shrink-0" />
-                    <span className="truncate max-w-[125px]">
-                      {member.email}
-                    </span>
-                  </a>
-                  <a
-                    href={`tel:${member.phone}`}
-                    className="flex items-center gap-2 hover:text-white transition-colors whitespace-nowrap"
-                    aria-label={`Call ${member.name}`}
-                  >
-                    <Phone className="w-5 h-5 flex-shrink-0" />
-                    <span>{member.phone}</span>
-                  </a>
-                </div>
               </div>
             ))}
           </div>

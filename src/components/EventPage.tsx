@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
   Phone,
 } from "lucide-react";
 import { api } from "../utils/api";
+import { useToast } from "./ToastContext"; // Import toast hook
 
 interface EventDetails {
   id: string;
@@ -42,6 +43,8 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+
+  const { showError, showSuccess } = useToast();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -96,7 +99,7 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("You must be logged in to enroll for an event.");
+        showError("You must be logged in to enroll for an event.");
         return;
       }
 
@@ -113,7 +116,7 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
       console.log("✅ Enrollment Response:", res.data);
 
       if (res.data.success) {
-        alert("Enrolled successfully!");
+        showSuccess("Enrolled successfully!");
         setEvent((prev) =>
           prev
             ? { ...prev, max_participants: prev.max_participants - 1 }
@@ -137,15 +140,15 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
 
         // Handle specific error cases
         if (errorMessage.includes("already enrolled")) {
-          alert("You are already enrolled in this event.");
+          showError("You are already enrolled in this event.");
           setIsEnrolled(true);
           setShowEnrollModal(false);
         } else if (errorMessage.includes("No slots left")) {
-          alert("Sorry, no slots are available for this event.");
+          showError("Sorry, no slots are available for this event.");
           // Optionally update the UI to show event is full
           setEvent((prev) => (prev ? { ...prev, max_participants: 0 } : prev));
         } else {
-          alert(errorMessage);
+          showError(errorMessage);
         }
       } else if (error.request) {
         // Request made but no server response
@@ -153,11 +156,11 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
           "⚠️ No Response received from the server:",
           error.request,
         );
-        alert("No response from the server. Please check your connection.");
+        showError("No response from the server. Please check your connection.");
       } else {
         // Something else happened while setting up the request
         console.error("💥 Axios setup error:", error.message);
-        alert("Unexpected error occurred. Please try again later.");
+        showError("Unexpected error occurred. Please try again later.");
       }
     }
   };
@@ -171,7 +174,7 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
     if (onLogout) {
       onLogout();
     }
-    alert("Logging out...");
+    showSuccess("Logging out...");
     navigate("/");
   };
 
@@ -360,14 +363,14 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
                   alt={event.title}
                   className="w-full h-full object-cover"
                 />
-
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
                 {/* Event Title */}
                 <div className="absolute bottom-6 left-6 right-6">
                   <div
-                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${getModeColor(event.mode)} border backdrop-blur-sm mb-4`}
+                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${getModeColor(
+                      event.mode,
+                    )} border backdrop-blur-sm mb-4`}
                   >
                     {getModeIcon(event.mode)}
                     <span className="capitalize">{event.mode} Event</span>

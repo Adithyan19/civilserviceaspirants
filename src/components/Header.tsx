@@ -22,6 +22,26 @@ const Header: React.FC<HeaderProps> = ({
   const navRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (mobileMenuRef.current) {
+      if (isMobileMenuOpen) {
+        gsap.fromTo(
+          mobileMenuRef.current,
+          { height: 0, opacity: 0 },
+          { height: "auto", opacity: 1, duration: 0.4, ease: "power2.out" },
+        );
+      } else {
+        gsap.to(mobileMenuRef.current, {
+          height: 0,
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.in",
+        });
+      }
+    }
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     const tl = gsap.timeline();
@@ -111,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({
                 Civil Service Aspirants
               </h1>
               <p className="text-xs sm:text-sm text-gray-400 truncate leading-tight">
-                Club - TKMCE
+                TKMCE
               </p>
             </div>
           </div>
@@ -181,7 +201,11 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-2 pb-6 border-t border-white/10 bg-glass-bg backdrop-blur-md rounded-b-lg shadow-lg z-40">
+          <div
+            ref={mobileMenuRef}
+            className="md:hidden mt-2 pb-6 border-t border-white/10 bg-transparent rounded-b-lg shadow-lg z-40 overflow-hidden"
+            style={{ height: 0, opacity: 0 }}
+          >
             <nav
               className="flex flex-col space-y-3 px-4 mt-4"
               aria-label="Mobile Navigation"

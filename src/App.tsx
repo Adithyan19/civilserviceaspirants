@@ -22,10 +22,12 @@ import AccountDetails from "./components/AccountDetails";
 import Profile from "./components/Profile";
 import OurTeam from "./components/OurTeam";
 import TeamPage from "./components/TeamPage";
+import AboutUs from "./components/AboutUs";
 import HomeEventsPage from "./components/HomeEventsPage";
 import EventDetailPage from "./components/EventDetailPage";
-import EventPage from "./components/EventPage"; // ✅ added import
+import EventPage from "./components/EventPage";
 import { useModal } from "./hooks/useModal";
+import { ToastProvider, useToast } from "./components/ToastContext"; // Import ToastProvider
 import "./styles/locomotive.css";
 
 interface MyJwtPayload {
@@ -40,12 +42,18 @@ interface MyJwtPayload {
 const AppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { showSuccess, showInfo, showError } = useToast(); // Use toast hook
 
   const { isOpen, openModal, closeModal } = useModal();
   const loginModal = useModal();
 
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Scroll to top whenever the location changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -64,15 +72,19 @@ const AppContent: React.FC = () => {
         console.error("Invalid or expired token", err);
         localStorage.removeItem("token");
         setUser(null);
+        // Show error toast instead of console log
+        showError("Session expired. Please log in again.");
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [showError]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
     navigate("/");
+    // Show info toast instead of alert
+    showInfo("You have been logged out successfully.");
   };
 
   const [pdfViewer, setPdfViewer] = useState({
@@ -89,7 +101,8 @@ const AppContent: React.FC = () => {
   const isEventPage = location.pathname.startsWith("/event/");
   const isEventsListPage = location.pathname === "/events";
   const isDashboardEventPage =
-    location.pathname.startsWith("/dashboard/event/"); // ✅ detect dashboard event page
+    location.pathname.startsWith("/dashboard/event/");
+  const isAboutUsPage = location.pathname === "/aboutus";
 
   const handleLogin = (credentials: {
     email: string;
@@ -102,6 +115,9 @@ const AppContent: React.FC = () => {
       name: credentials.name,
     });
     loginModal.closeModal();
+
+    // Show success toast
+    showSuccess(`Welcome back, ${credentials.name}!`);
 
     if (credentials.role === "admin") {
       navigate("/admin");
@@ -134,7 +150,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen font-lexend">
       {/* Home Page */}
       {isHomePage && (
         <div className="bg-dark-bg text-white">
@@ -158,6 +174,9 @@ const AppContent: React.FC = () => {
           />
         </div>
       )}
+
+      {/* About Us Page */}
+      {isAboutUsPage && <AboutUs />}
 
       {/* Events List Page */}
       {isEventsListPage && (
@@ -198,7 +217,7 @@ const AppContent: React.FC = () => {
 
       {/* Dashboard Event Page */}
       {isDashboardEventPage && user && (
-        <EventPage user={user} onLogout={handleLogout} /> // ✅ load EventPage when coming from Dashboard
+        <EventPage user={user} onLogout={handleLogout} />
       )}
 
       {/* Admin */}
@@ -212,7 +231,7 @@ const AppContent: React.FC = () => {
 
       {/* Profile */}
       {location.pathname === "/profile" && user && (
-        <Profile user={user} onLogout={handleLogout} /> //onOpenPDF={handleOpenPDF} maybe use later
+        <Profile user={user} onLogout={handleLogout} />
       )}
       {location.pathname === "/profile" && !user && <Navigate to="/" replace />}
 
@@ -239,21 +258,25 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<AppContent />} />
-        <Route path="/events" element={<AppContent />} />
-        <Route path="/dashboard" element={<AppContent />} />
-        <Route path="/dashboard/event/:id" element={<AppContent />} />{" "}
-        {/* ✅ NEW ROUTE */}
-        <Route path="/admin" element={<AppContent />} />
-        <Route path="/account" element={<AppContent />} />
-        <Route path="/profile" element={<AppContent />} />
-        <Route path="/event/:id" element={<AppContent />} />
-        <Route path="/team" element={<AppContent />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+    <ToastProvider>
+      {" "}
+      {/* Wrap the entire app with ToastProvider */}
+      <Router>
+        <Routes>
+          <Route path="/" element={<AppContent />} />
+          <Route path="/aboutus" element={<AppContent />} />
+          <Route path="/events" element={<AppContent />} />
+          <Route path="/dashboard" element={<AppContent />} />
+          <Route path="/dashboard/event/:id" element={<AppContent />} />
+          <Route path="/admin" element={<AppContent />} />
+          <Route path="/account" element={<AppContent />} />
+          <Route path="/profile" element={<AppContent />} />
+          <Route path="/event/:id" element={<AppContent />} />
+          <Route path="/team" element={<AppContent />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 

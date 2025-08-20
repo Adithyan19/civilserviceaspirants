@@ -12,8 +12,7 @@ export default {
                 "glass-bg": "rgba(255, 255, 255, 0.05)",
             },
             fontFamily: {
-                futura: ["Futura", "Arial", "sans-serif"],
-                inter: ["Inter", "sans-serif"],
+                lexend: ["Lexend", "sans-serif"],
             },
             boxShadow: {
                 neon: "0 0 20px rgba(0, 245, 255, 0.5)",

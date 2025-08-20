@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Users, BookOpen, Award, Target } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Users, BookOpen, Award, Target, ArrowRight } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,6 +11,7 @@ const About: React.FC = () => {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
   const imageGridRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     gsap.fromTo(
@@ -107,7 +109,7 @@ const About: React.FC = () => {
       icon: <Target className="w-8 h-8" />,
       title: "Current Affairs",
       description:
-        "Structured approach to help you achieve your civil services career aspirations.",
+        "Stay updated with latest current affairs and their relevance to civil services preparation.",
     },
   ];
 
@@ -160,7 +162,7 @@ const About: React.FC = () => {
         </div>
 
         {/* Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-16 items-center mb-12">
           {/* Text Content */}
           <div>
             <h3 className="text-3xl font-bold mb-6 text-white">
@@ -168,22 +170,18 @@ const About: React.FC = () => {
             </h3>
             <div className="space-y-4 text-gray-300 leading-relaxed">
               <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat.
+                Civil Services Club is a community of dreamers and achievers
+                working together to shape a better tomorrow. We bring aspirants
+                together to learn, share, and grow with the right guidance and
+                peer support. With mentorship, teamwork, and the right
+                resources, we aim to inspire students to stay motivated and
+                pursue their civil services dream with passion and dedication.
               </p>
               <p>
-                Duis aute irure dolor in reprehenderit in voluptate velit esse
-                cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-                cupidatat non proident, sunt in culpa qui officia deserunt
-                mollit anim id est laborum.
-              </p>
-              <p>
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-                quae ab illo inventore veritatis et quasi architecto beatae
-                vitae dicta sunt explicabo.
+                Beyond academics, we foster a culture of integrity, leadership,
+                and public service, preparing our members not just to clear
+                examinations, but to become exemplary public servants who will
+                serve the nation with dedication and honor.
               </p>
             </div>
 
@@ -207,23 +205,7 @@ const About: React.FC = () => {
                 className="aspect-square bg-white/10 rounded-2xl border border-white/10 flex items-center justify-center backdrop-blur-sm hover:border-white/50 transition-all duration-300 hover:shadow-md group overflow-hidden"
               >
                 <img
-                  src={`https://images.pexels.com/photos/${
-                    index === 1
-                      ? "3184465"
-                      : index === 2
-                        ? "3184418"
-                        : index === 3
-                          ? "3184432"
-                          : "3184454"
-                  }/pexels-photo-${
-                    index === 1
-                      ? "3184465"
-                      : index === 2
-                        ? "3184418"
-                        : index === 3
-                          ? "3184432"
-                          : "3184454"
-                  }.jpeg?auto=compress&cs=tinysrgb&w=400`}
+                  src={`/photo${index}.jpg`}
                   alt={`Event ${index}`}
                   className="w-full h-full object-cover rounded-2xl group-hover:scale-110 transition-transform duration-500"
                   onError={(e) => {
@@ -240,6 +222,17 @@ const About: React.FC = () => {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Learn More About Us Button */}
+        <div className="text-center">
+          <button
+            onClick={() => navigate("/aboutus")}
+            className="px-8 py-4 bg-white text-black font-semibold rounded-full hover:bg-gray-200 hover:scale-105 transition-all duration-300 inline-flex items-center justify-center space-x-3 mx-auto lg:mx-0"
+          >
+            <span>Learn More About Us</span>
+            <ArrowRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </section>

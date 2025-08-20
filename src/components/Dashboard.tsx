@@ -166,7 +166,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const handleLogout = () => {
     setShowUserDropdown(false);
     if (onLogout) onLogout();
-    alert("Logging out...");
     navigate("/");
   };
 

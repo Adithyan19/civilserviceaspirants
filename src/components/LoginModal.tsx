@@ -3,6 +3,8 @@ import { X, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { gsap } from "gsap";
 import { jwtDecode } from "jwt-decode";
 import { api } from "../utils/api";
+import { useToast } from "./ToastContext"; // Import the toast hook
+import axios from "axios";
 
 interface MyJwtPayload {
   id: number;
@@ -30,6 +32,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
   onClose,
   onLogin,
 }) => {
+  const { showError, showSuccess } = useToast(); // Use the toast hook
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -65,7 +69,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
       });
       const result = await response.data;
       if (result.success) {
+        // Store token in localStorage
         localStorage.setItem("token", result.token);
+
+        // Show success toast instead of alert
+        showSuccess("Login successful! Welcome back.");
 
         const decoded = jwtDecode<MyJwtPayload>(result.token);
 
@@ -78,11 +86,24 @@ const LoginModal: React.FC<LoginModalProps> = ({
         setFormData({ email: "", password: "", role: "user", name: "" });
         onClose();
       } else {
-        alert(result.error || "Login failed");
+        // Show error toast instead of alert
+        showError(
+          result.error || "Login failed. Please check your credentials.",
+        );
       }
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      alert("❌ Something went wrong. Please try again.\n" + errorMsg);
+    } catch (error: unknown) {
+      let errorMsg = "Something went wrong. Please try again.";
+      if (axios.isAxiosError(error) && error.response) {
+        errorMsg =
+          error.response.data?.error ||
+          error.response.data?.message ||
+          `${errorMsg}\nRequest failed with status code ${error.response.status}`;
+      } else if (error instanceof Error) {
+        errorMsg += "\n" + error.message;
+      } else {
+        errorMsg += "\n" + String(error);
+      }
+      showError(errorMsg);
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -151,9 +172,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg 
-                    text-white placeholder-gray-400 focus:border-neon-blue focus:ring-1 
-                    focus:ring-neon-blue focus:outline-none transition-all duration-300
-                    hover:border-white/20"
+                      text-white placeholder-gray-400 focus:border-neon-blue focus:ring-1 
+                      focus:ring-neon-blue focus:outline-none transition-all duration-300
+                      hover:border-white/20"
                   placeholder="Enter your email"
                   required
                 />
@@ -170,9 +191,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   value={formData.password}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg 
-                    text-white placeholder-gray-400 focus:border-neon-blue focus:ring-1 
-                    focus:ring-neon-blue focus:outline-none transition-all duration-300
-                    hover:border-white/20"
+                      text-white placeholder-gray-400 focus:border-neon-blue focus:ring-1 
+                      focus:ring-neon-blue focus:outline-none transition-all duration-300
+                      hover:border-white/20"
                   placeholder="Enter your password"
                   required
                 />
@@ -180,7 +201,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 
-                    hover:text-white transition-colors"
+                      hover:text-white transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -196,9 +217,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
               type="submit"
               disabled={isLoading}
               className="login-form-field w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple 
-                text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-neon-blue/25 
-                transition-all duration-300 transform hover:scale-105 disabled:opacity-50 
-                disabled:cursor-not-allowed disabled:transform-none"
+                      text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-neon-blue/25 
+                      transition-all duration-300 transform hover:scale-105 disabled:opacity-50 
+                      disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">

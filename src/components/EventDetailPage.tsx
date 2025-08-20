@@ -10,8 +10,8 @@ import {
   Phone,
   User,
 } from "lucide-react";
-import axios from "axios";
 import Footer from "./Footer";
+import { api } from "../utils/api";
 
 interface EventDetailPageProps {
   onLoginClick: () => void; // function to open login modal
@@ -54,7 +54,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
     });
 
   useEffect(() => {
-    axios
+    api
       .get<EventDetail>(`/api/getevent/${id}`)
       .then((res) => setEvent(res.data))
       .catch(() => setEvent(null))
@@ -103,16 +103,27 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
   return (
     <div className="bg-[#0f172a] min-h-screen text-white">
       {/* Header */}
-      <div className="glass-panel border-b border-white/10">
-        <div className="container mx-auto px-6 py-6 flex items-center gap-4">
-          <button
-            onClick={() => navigate("/events")}
-            className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" /> Back to Events
-          </button>
-          <h1 className="text-2xl font-bold">Event Details</h1>
-        </div>
+      <div className="container mx-auto px-6 py-6 relative flex items-center">
+        {/* Spacer element ensures height */}
+        <div className="h-10" />
+
+        {/* Back button */}
+        <button
+          onClick={() => navigate("/events")}
+          className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm
+               border border-white/20 rounded-full hover:border-neon-blue/50
+               hover:shadow-glow transition-all duration-300 group absolute left-6 top-1/2 -translate-y-1/2"
+        >
+          <ArrowLeft className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors" />
+        </button>
+
+        {/* Centered Title */}
+        <h1
+          className="text-2xl font-bold absolute left-1/2 top-1/2 
+                 -translate-x-1/2 -translate-y-1/2"
+        >
+          Event Details
+        </h1>
       </div>
 
       {/* Hero Section */}
@@ -151,38 +162,6 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
                 {event.full_description || event.description}
               </p>
             </div>
-
-            {/* Agenda Section (if available) */}
-            {event.agenda && event.agenda.length > 0 && (
-              <div className="glass-panel rounded-2xl border border-white/10 p-6">
-                <h3 className="text-xl font-bold mb-4">Event Agenda</h3>
-                <ul className="space-y-2">
-                  {event.agenda.map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 bg-neon-blue/20 text-neon-blue rounded-full flex items-center justify-center text-sm font-medium">
-                        {index + 1}
-                      </span>
-                      <span className="text-gray-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Requirements Section (if available) */}
-            {event.requirements && event.requirements.length > 0 && (
-              <div className="glass-panel rounded-2xl border border-white/10 p-6">
-                <h3 className="text-xl font-bold mb-4">Requirements</h3>
-                <ul className="space-y-2">
-                  {event.requirements.map((req, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-2 h-2 bg-neon-purple rounded-full mt-2"></span>
-                      <span className="text-gray-300">{req}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
 
           {/* Event Information */}
@@ -204,7 +183,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
               <div className="flex items-center gap-3">
                 <Users className="w-5 h-5 text-neon-blue flex-shrink-0" />
                 <span className="text-gray-300">
-                  {event.attendees ?? "?"}/{event.max_participants} Participants
+                  {event.max_participants} Slots
                 </span>
               </div>
               {event.organizer && (
