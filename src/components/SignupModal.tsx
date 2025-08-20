@@ -43,6 +43,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
 
   // Store original overflow styles
   const originalBodyOverflow = useRef<string>("");
@@ -119,13 +120,37 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  // Phone number validation function
+  const validatePhone = (phone: string): boolean => {
+    // Remove any non-digit characters
+    const cleanPhone = phone.replace(/\D/g, "");
+    return cleanPhone.length === 10;
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Special handling for phone number
+    if (name === "phone") {
+      // Allow only digits and limit to 10 characters
+      const cleanValue = value.replace(/\D/g, "").slice(0, 10);
+      setFormData((prev) => ({ ...prev, [name]: cleanValue }));
+
+      // Update phone error in real-time
+      if (cleanValue.length === 0) {
+        setPhoneError("");
+      } else if (cleanValue.length !== 10) {
+        setPhoneError("Phone number must be exactly 10 digits");
+      } else {
+        setPhoneError("");
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const togglePasswordVisibility = (field: "pass" | "confpass") => {
@@ -144,6 +169,13 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
 
     if (formData.pass !== formData.confpass) {
       showError("Passwords do not match.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate phone number
+    if (!validatePhone(formData.phone)) {
+      showError("Please enter a valid 10-digit phone number.");
       setIsSubmitting(false);
       return;
     }
@@ -176,6 +208,9 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         interests: "",
         confpass: "",
       });
+
+      // Clear phone error
+      setPhoneError("");
 
       showSuccess(
         "🎉 Registration successful! Welcome to the Civil Servants Club.",
@@ -282,12 +317,6 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
                 type: "password",
                 placeholder: "Confirm Password",
               },
-              {
-                name: "phone",
-                icon: <Phone />,
-                type: "tel",
-                placeholder: "Phone Number",
-              },
             ].map(({ name, icon, type, placeholder }) => {
               const isPassword = name === "pass" || name === "confpass";
               return (
@@ -320,6 +349,35 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
               );
             })}
 
+            {/* Phone Number Field with Validation */}
+            <div className="relative md:col-span-2">
+              <div className="absolute top-4 left-4 text-white">
+                <Phone className="w-5 h-5" />
+              </div>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                maxLength={10}
+                className={`w-full pl-12 pr-4 py-4 bg-glass-bg border rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/10 transition ${
+                  phoneError
+                    ? "border-red-400 focus:border-red-400"
+                    : "border-white/20 focus:border-white/40"
+                }`}
+                placeholder="Phone Number"
+              />
+              {phoneError && (
+                <p className="mt-2 text-sm text-red-400">{phoneError}</p>
+              )}
+              {formData.phone && !phoneError && (
+                <p className="mt-2 text-sm text-green-400">
+                  ✓ Valid phone number
+                </p>
+              )}
+            </div>
+
             {/* Course Select */}
             <div className="relative">
               <div className="absolute top-4 left-4 text-white">
@@ -351,7 +409,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Year Select */}
-            <div className="relative md:col-span-2">
+            <div className="relative">
               <div className="absolute top-4 left-4 text-white">
                 <Calendar className="w-5 h-5" />
               </div>
@@ -396,7 +454,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
           {/* Submit */}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !!phoneError}
             className="w-full px-8 py-4 bg-white/10 text-white font-semibold rounded-2xl shadow hover:shadow-md hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (

@@ -15,10 +15,18 @@ const Footer: React.FC = () => {
   const location = useLocation();
 
   const socialLinks = [
-    { icon: <Facebook className="w-5 h-5" />, href: "#", label: "Facebook" },
-    { icon: <Twitter className="w-5 h-5" />, href: "#", label: "Twitter" },
-    { icon: <Instagram className="w-5 h-5" />, href: "#", label: "Instagram" },
-    { icon: <Linkedin className="w-5 h-5" />, href: "#", label: "LinkedIn" },
+    // { icon: <Facebook className="w-5 h-5" />, href: "#", label: "Facebook" },
+    // { icon: <Twitter className="w-5 h-5" />, href: "#", label: "Twitter" },
+    {
+      icon: <Instagram className="w-5 h-5" />,
+      href: "https://www.instagram.com/tkmce_civil_service_club/?hl=en",
+      label: "Instagram",
+    },
+    {
+      icon: <Linkedin className="w-5 h-5" />,
+      href: "https://www.linkedin.com/company/civil-service-aspirants-club-tkmce/?originalSubdomain=in",
+      label: "LinkedIn",
+    },
   ];
 
   const quickLinks = [
@@ -97,11 +105,11 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-gray-300">
                 <Mail className="w-4 h-4 text-neon-blue" />
-                <span>civilservants@tkmce.ac.in</span>
+                <span>tkmcivilserviceclub@gmail.com</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-300">
                 <Phone className="w-4 h-4 text-neon-blue" />
-                <span>+91 9876543210</span>
+                <span>+91 XXXXXXXXXX</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-300">
                 <MapPin className="w-4 h-4 text-neon-blue" />
@@ -161,12 +169,6 @@ const Footer: React.FC = () => {
               className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300"
             >
               Terms of Service
-            </a>
-            <a
-              href="#"
-              className="text-gray-400 hover:text-neon-blue text-sm transition-colors duration-300"
-            >
-              Cookie Policy
             </a>
           </div>
         </div>

@@ -138,30 +138,31 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
   return (
     <div className="bg-[#0f172a] min-h-screen">
       {/* Header */}
-      <div className="events-header glass-panel border-b border-white/10">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center space-x-4 mb-6">
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm
-               border border-white/20 rounded-full hover:border-neon-blue/50
-               hover:shadow-glow transition-all duration-300 group absolute left-6 top-1/2 -translate-y-1/2"
-            >
-              <ArrowLeft className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors" />
-            </button>
-          </div>
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white">Events</h1>
-          </div>
+      <div className="events-header glass-panel border-b border-white/10 relative">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 relative flex items-center justify-center">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm border border-white/20 rounded-full hover:border-neon-blue/50 hover:shadow-glow transition-all duration-300 group absolute left-6"
+          >
+            <ArrowLeft className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors" />
+          </button>
 
-          {/* Search + Filter */}
+          {/* Centered Title */}
+          <h1 className="text-3xl font-extrabold text-white text-center">
+            Events
+          </h1>
+        </div>
+
+        {/* Search + Filter Section */}
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 pb-6">
           <div className="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-glass-bg border border-white/20 text-white"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-glass-bg border border-white/20 text-white placeholder-gray-400 focus:border-neon-blue/50 focus:outline-none transition-colors"
                 placeholder="Search events..."
               />
             </div>
@@ -170,7 +171,7 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
               <select
                 value={filterMode}
                 onChange={(e) => setFilterMode(e.target.value as any)}
-                className="pl-10 pr-8 py-2 bg-glass-bg border border-white/20 rounded-lg text-white appearance-none"
+                className="pl-10 pr-8 py-2 bg-glass-bg border border-white/20 rounded-lg text-white appearance-none focus:border-neon-blue/50 focus:outline-none transition-colors cursor-pointer"
               >
                 <option className="bg-[#0f172a] text-white" value="all">
                   All Events

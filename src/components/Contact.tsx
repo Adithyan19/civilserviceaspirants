@@ -100,8 +100,8 @@ const Contact: React.FC = () => {
     {
       icon: <Mail className="w-6 h-6" />,
       title: "Email",
-      content: "civilservants@tkmce.ac.in",
-      link: "mailto:civilservants@tkmce.ac.in",
+      content: "tkmcivilserviceclub@gmail.com",
+      link: "mailto:tkmcivilserviceclub@gmail.com",
     },
     {
       icon: <Phone className="w-6 h-6" />,
