@@ -1,11 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import Footer from "./Footer";
 
 const AboutUs = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const contentRef = useRef(null);
+  const slideContainerRef = useRef<HTMLDivElement>(null);
+
+  // Touch handling states
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const slides = [
     {
@@ -68,11 +75,13 @@ const AboutUs = () => {
   useEffect(() => {
     // Auto-slide functionality
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      if (!isDragging) {
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+      }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, [slides.length, isDragging]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -84,6 +93,73 @@ const AboutUs = () => {
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
+  };
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsDragging(true);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) {
+      setIsDragging(false);
+      return;
+    }
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+
+    setIsDragging(false);
+  };
+
+  // Mouse events for desktop drag support
+  const onMouseDown = (e: React.MouseEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.clientX);
+    setIsDragging(true);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setTouchEnd(e.clientX);
+  };
+
+  const onMouseUp = () => {
+    if (!touchStart || !touchEnd) {
+      setIsDragging(false);
+      return;
+    }
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+
+    setIsDragging(false);
+  };
+
+  const onMouseLeave = () => {
+    setIsDragging(false);
   };
 
   return (
@@ -106,8 +182,19 @@ const AboutUs = () => {
         </h1>
       </div>
 
-      {/* Hero Slideshow - Mobile Responsive */}
-      <div className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-screen w-full overflow-hidden">
+      {/* Hero Slideshow - Mobile Responsive with Touch Support */}
+      <div
+        ref={slideContainerRef}
+        className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-screen w-full overflow-hidden select-none"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
+        style={{ cursor: isDragging ? "grabbing" : "grab" }}
+      >
         {/* Slides */}
         {slides.map((slide, index) => (
           <div
@@ -119,7 +206,7 @@ const AboutUs = () => {
             <img
               src={slide.image}
               alt={slide.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover pointer-events-none"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = `https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=800&fit=crop&crop=center`;
@@ -128,7 +215,7 @@ const AboutUs = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
             {/* Slide Content - Mobile Responsive */}
-            <div className="absolute bottom-8 sm:bottom-12 md:bottom-20 left-4 right-4 sm:left-6 sm:right-6 md:left-20 md:right-20 text-center">
+            <div className="absolute bottom-8 sm:bottom-12 md:bottom-20 left-4 right-4 sm:left-6 sm:right-6 md:left-20 md:right-20 text-center pointer-events-none">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-2 sm:mb-4 leading-tight px-2">
                 {slide.title}
               </h2>
@@ -171,6 +258,11 @@ const AboutUs = () => {
               }`}
             />
           ))}
+        </div>
+
+        {/* Touch/Swipe indicator for mobile users */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/60 text-xs sm:hidden z-20">
+          Swipe left or right
         </div>
       </div>
 
@@ -251,12 +343,8 @@ const AboutUs = () => {
         </div>
       </div>
 
-      {/* Footer Placeholder */}
-      <div className="bg-slate-800 py-8">
-        <div className="container mx-auto px-4 sm:px-6 text-center text-gray-400">
-          <p>&copy; 2024 Civil Services Club. All rights reserved.</p>
-        </div>
-      </div>
+      {/* Footer Component */}
+      <Footer />
     </div>
   );
 };

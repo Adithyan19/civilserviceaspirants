@@ -85,7 +85,7 @@ const TeamPage: React.FC = () => {
     {
       name: "Aswani",
       position: "Design Team",
-      image: "",
+      image: "/Aswani.jpg",
     },
     {
       name: "Shehina",
@@ -95,7 +95,7 @@ const TeamPage: React.FC = () => {
     {
       name: "Abel Joseph",
       position: "Content and Doc Head",
-      image: "",
+      image: "/Abel.jpg",
     },
     {
       name: "Niveditha",
@@ -110,17 +110,17 @@ const TeamPage: React.FC = () => {
     {
       name: "Krishnendu",
       position: "Content and Doc Team",
-      image: "",
+      image: "/KRISHNENDU.jpg",
     },
     {
       name: "Bibin",
       position: "Public Relations Head",
-      image: "",
+      image: "/Bibin.jpg",
     },
     {
       name: "Abhay ",
       position: "Public Relations Vice Head",
-      image: "",
+      image: "/ABHAY.jpg",
     },
     {
       name: "Siva Prasad",

@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   Lock,
+  Check,
 } from "lucide-react";
 import { api } from "../utils/api";
 import { useToast } from "./ToastContext"; // Import toast hook
@@ -44,6 +45,12 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [phoneError, setPhoneError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordValidation, setPasswordValidation] = useState({
+    length: false,
+    specialChar: false,
+    isValid: false,
+  });
 
   // Store original overflow styles
   const originalBodyOverflow = useRef<string>("");
@@ -120,11 +127,34 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  // Email validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
   // Phone number validation function
   const validatePhone = (phone: string): boolean => {
     // Remove any non-digit characters
     const cleanPhone = phone.replace(/\D/g, "");
     return cleanPhone.length === 10;
+  };
+
+  // Password validation function
+  const validatePassword = (password: string) => {
+    const minLength = password.length >= 6;
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+      password,
+    );
+
+    const validation = {
+      length: minLength,
+      specialChar: hasSpecialChar,
+      isValid: minLength && hasSpecialChar,
+    };
+
+    setPasswordValidation(validation);
+    return validation;
   };
 
   const handleInputChange = (
@@ -148,6 +178,22 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       } else {
         setPhoneError("");
       }
+    } else if (name === "email") {
+      // Special handling for email validation
+      setFormData((prev) => ({ ...prev, [name]: value }));
+
+      // Update email error in real-time
+      if (value.length === 0) {
+        setEmailError("");
+      } else if (!validateEmail(value)) {
+        setEmailError("Please enter a valid email address");
+      } else {
+        setEmailError("");
+      }
+    } else if (name === "pass") {
+      // Special handling for password validation
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      validatePassword(value);
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -166,6 +212,22 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // Validate email
+    if (!validateEmail(formData.email)) {
+      showError("Please enter a valid email address.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate password
+    if (!passwordValidation.isValid) {
+      showError(
+        "Password must be at least 6 characters and contain at least one special character.",
+      );
+      setIsSubmitting(false);
+      return;
+    }
 
     if (formData.pass !== formData.confpass) {
       showError("Passwords do not match.");
@@ -209,8 +271,14 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         confpass: "",
       });
 
-      // Clear phone error
+      // Clear validation states
       setPhoneError("");
+      setEmailError("");
+      setPasswordValidation({
+        length: false,
+        specialChar: false,
+        isValid: false,
+      });
 
       showSuccess(
         "🎉 Registration successful! Welcome to the Civil Servants Club.",
@@ -292,62 +360,170 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
-            {[
-              {
-                name: "fullName",
-                icon: <User />,
-                type: "text",
-                placeholder: "Full Name",
-              },
-              {
-                name: "email",
-                icon: <Mail />,
-                type: "email",
-                placeholder: "Email Address",
-              },
-              {
-                name: "pass",
-                icon: <Lock />,
-                type: "password",
-                placeholder: "Create Password",
-              },
-              {
-                name: "confpass",
-                icon: <Lock />,
-                type: "password",
-                placeholder: "Confirm Password",
-              },
-            ].map(({ name, icon, type, placeholder }) => {
-              const isPassword = name === "pass" || name === "confpass";
-              return (
-                <div key={name} className="relative">
-                  <div className="absolute top-4 left-4 text-white">{icon}</div>
-                  <input
-                    type={isPassword && showPassword[name] ? "text" : type}
-                    name={name}
-                    value={formData[name as keyof typeof formData] || ""}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full pl-12 pr-12 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition"
-                    placeholder={placeholder}
-                  />
-                  {isPassword && (
+            {/* Full Name */}
+            <div className="relative">
+              <div className="absolute top-4 left-4 text-white">
+                <User className="w-5 h-5" />
+              </div>
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleInputChange}
+                required
+                className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/10 transition"
+                placeholder="Full Name"
+              />
+            </div>
+
+            {/* Email */}
+            <div className="relative">
+              <div className="absolute top-4 left-4 text-white">
+                <Mail className="w-5 h-5" />
+              </div>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className={`w-full pl-12 pr-4 py-4 bg-glass-bg border rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/10 transition ${
+                  emailError
+                    ? "border-red-400 focus:border-red-400"
+                    : formData.email && !emailError
+                      ? "border-green-400 focus:border-green-400"
+                      : "border-white/20 focus:border-white/40"
+                }`}
+                placeholder="Email Address"
+              />
+              {emailError && (
+                <p className="mt-2 text-sm text-red-400">{emailError}</p>
+              )}
+              {formData.email && !emailError && (
+                <p className="mt-2 text-sm text-green-400">
+                  ✓ Valid email address
+                </p>
+              )}
+            </div>
+
+            {/* Password with Validation */}
+            <div className="relative md:col-span-2">
+              <div className="absolute top-4 left-4 text-white">
+                <Lock className="w-5 h-5" />
+              </div>
+              <input
+                type={showPassword.pass ? "text" : "password"}
+                name="pass"
+                value={formData.pass}
+                onChange={handleInputChange}
+                required
+                className={`w-full pl-12 pr-12 py-4 bg-glass-bg border rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/10 transition ${
+                  formData.pass && !passwordValidation.isValid
+                    ? "border-red-400 focus:border-red-400"
+                    : formData.pass && passwordValidation.isValid
+                      ? "border-green-400 focus:border-green-400"
+                      : "border-white/20 focus:border-white/40"
+                }`}
+                placeholder="Create Password"
+              />
+              <div
+                className="absolute top-4 right-4 text-white cursor-pointer"
+                onClick={() => togglePasswordVisibility("pass")}
+              >
+                {showPassword.pass ? <EyeOff size={20} /> : <Eye size={20} />}
+              </div>
+
+              {/* Password Requirements */}
+              {formData.pass && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center space-x-2">
                     <div
-                      className="absolute top-4 right-4 text-white cursor-pointer"
-                      onClick={() =>
-                        togglePasswordVisibility(name as "pass" | "confpass")
-                      }
+                      className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        passwordValidation.length
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }`}
                     >
-                      {showPassword[name] ? (
-                        <EyeOff size={20} />
-                      ) : (
-                        <Eye size={20} />
+                      {passwordValidation.length && (
+                        <Check className="w-3 h-3 text-white" />
                       )}
                     </div>
-                  )}
+                    <span
+                      className={`text-sm ${
+                        passwordValidation.length
+                          ? "text-green-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      At least 6 characters
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        passwordValidation.specialChar
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }`}
+                    >
+                      {passwordValidation.specialChar && (
+                        <Check className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                    <span
+                      className={`text-sm ${
+                        passwordValidation.specialChar
+                          ? "text-green-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      At least one special character (!@#$%^&*()_+-=[]{}
+                      ;':"\\|,.&lt;&gt;/?)
+                    </span>
+                  </div>
                 </div>
-              );
-            })}
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div className="relative md:col-span-2">
+              <div className="absolute top-4 left-4 text-white">
+                <Lock className="w-5 h-5" />
+              </div>
+              <input
+                type={showPassword.confpass ? "text" : "password"}
+                name="confpass"
+                value={formData.confpass}
+                onChange={handleInputChange}
+                required
+                className={`w-full pl-12 pr-12 py-4 bg-glass-bg border rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/10 transition ${
+                  formData.confpass && formData.pass !== formData.confpass
+                    ? "border-red-400 focus:border-red-400"
+                    : formData.confpass && formData.pass === formData.confpass
+                      ? "border-green-400 focus:border-green-400"
+                      : "border-white/20 focus:border-white/40"
+                }`}
+                placeholder="Confirm Password"
+              />
+              <div
+                className="absolute top-4 right-4 text-white cursor-pointer"
+                onClick={() => togglePasswordVisibility("confpass")}
+              >
+                {showPassword.confpass ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </div>
+              {formData.confpass && formData.pass !== formData.confpass && (
+                <p className="mt-2 text-sm text-red-400">
+                  Passwords do not match
+                </p>
+              )}
+              {formData.confpass && formData.pass === formData.confpass && (
+                <p className="mt-2 text-sm text-green-400">✓ Passwords match</p>
+              )}
+            </div>
 
             {/* Phone Number Field with Validation */}
             <div className="relative md:col-span-2">
@@ -454,7 +630,12 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
           {/* Submit */}
           <button
             type="submit"
-            disabled={isSubmitting || !!phoneError}
+            disabled={
+              isSubmitting ||
+              !!phoneError ||
+              !!emailError ||
+              !passwordValidation.isValid
+            }
             className="w-full px-8 py-4 bg-white/10 text-white font-semibold rounded-2xl shadow hover:shadow-md hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (

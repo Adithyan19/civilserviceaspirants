@@ -106,11 +106,11 @@ const Header: React.FC<HeaderProps> = ({
       className="fixed top-0 left-0 right-0 z-50 bg-glass-bg backdrop-blur-md border-b border-white/10"
     >
       <div className="container mx-auto px-4 sm:px-6 md:px-8 py-3 sm:py-4">
-        <div className="flex items-center justify-between space-x-4 sm:space-x-8">
+        <div className="flex items-center justify-between space-x-2 sm:space-x-4 lg:space-x-8">
           {/* Logo and Club Name */}
           <div
             ref={logoRef}
-            className="flex items-center flex-shrink-0 min-w-0 space-x-3"
+            className="flex items-center flex-shrink-0 min-w-0 space-x-2 sm:space-x-3"
           >
             <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
               <img
@@ -136,10 +136,10 @@ const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Better responsive breakpoints */}
           <nav
             ref={navRef}
-            className="hidden md:flex items-center space-x-8 whitespace-nowrap"
+            className="hidden lg:flex items-center space-x-6 xl:space-x-8 whitespace-nowrap"
             aria-label="Primary Navigation"
           >
             <button
@@ -168,42 +168,38 @@ const Header: React.FC<HeaderProps> = ({
             </button>
           </nav>
 
-          {/* Desktop Auth Buttons */}
-          <div
-            ref={buttonRef}
-            className="hidden md:flex items-center space-x-4"
-            aria-label="Authentication Buttons"
-          >
-            <button
-              onClick={onLoginClick}
-              className="px-5 sm:px-6 py-2 sm:py-2.5 bg-white text-black rounded-full font-semibold hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-2 focus:ring-neon-blue"
+          {/* Desktop Auth Buttons - Only Login button now */}
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div
+              ref={buttonRef}
+              className="hidden sm:flex items-center"
+              aria-label="Authentication Buttons"
             >
-              Login
-            </button>
+              <button
+                onClick={onLoginClick}
+                className="px-4 md:px-5 lg:px-6 py-2 sm:py-2.5 bg-white text-black rounded-full font-semibold hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-2 focus:ring-neon-blue text-sm"
+              >
+                Login
+              </button>
+            </div>
+
+            {/* Mobile Menu Toggle */}
             <button
-              onClick={onSignupClick}
-              className="px-5 sm:px-6 py-2 sm:py-2.5 bg-white text-black rounded-full font-semibold hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-2 focus:ring-neon-blue"
+              onClick={() => setIsMobileMenuOpen((v) => !v)}
+              className="lg:hidden text-white p-2 rounded-md hover:text-neon-blue transition duration-300 focus:outline-none focus:ring-2 focus:ring-neon-blue z-50"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMobileMenuOpen}
             >
-              Sign Up
+              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setIsMobileMenuOpen((v) => !v)}
-            className="md:hidden text-white p-2 rounded-md hover:text-neon-blue transition duration-300 focus:outline-none focus:ring-2 focus:ring-neon-blue z-50"
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMobileMenuOpen}
-          >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
         </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div
             ref={mobileMenuRef}
-            className="md:hidden mt-2 pb-6 border-t border-white/10 bg-transparent rounded-b-lg shadow-lg z-40 overflow-hidden"
+            className="lg:hidden mt-2 pb-6 border-t border-white/10 bg-transparent rounded-b-lg shadow-lg z-40 overflow-hidden"
             style={{ height: 0, opacity: 0 }}
           >
             <nav
@@ -239,12 +235,6 @@ const Header: React.FC<HeaderProps> = ({
                 className="w-full bg-white text-black rounded-full font-semibold py-2 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-neon-blue"
               >
                 Login
-              </button>
-              <button
-                onClick={onSignupClick}
-                className="w-full bg-white text-black rounded-full font-semibold py-2 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-neon-blue"
-              >
-                Sign Up
               </button>
             </nav>
           </div>

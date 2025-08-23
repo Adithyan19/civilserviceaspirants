@@ -61,14 +61,14 @@ const OurTeam: React.FC = () => {
 
   const teamMembers = [
     {
-      name: "Brindha R K",
-      position: "Club Ambassador",
-      image: "",
-    },
-    {
       name: "Ashwin M G",
       position: "Club Ambassador",
       image: "/Ashwin M G.jpg",
+    },
+    {
+      name: "Brindha R K",
+      position: "Club Ambassador",
+      image: "",
     },
     {
       name: "Rameez",

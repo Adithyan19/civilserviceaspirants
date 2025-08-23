@@ -53,27 +53,7 @@ const About: React.FC = () => {
       );
     }
 
-    const images = imageGridRef.current?.children;
-    if (images) {
-      gsap.fromTo(
-        images,
-        { scale: 0, opacity: 0, rotation: 180 },
-        {
-          scale: 1,
-          opacity: 1,
-          rotation: 0,
-          duration: 1,
-          stagger: 0.1,
-          ease: "back.out(1.7)",
-          scrollTrigger: {
-            trigger: imageGridRef.current,
-            start: "top 80%",
-            end: "bottom 20%",
-            toggleActions: "play none none reverse",
-          },
-        },
-      );
-    }
+    // Removed image animations - they will appear static now
 
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
@@ -197,7 +177,7 @@ const About: React.FC = () => {
             </div>
           </div>
 
-          {/* Image Grid */}
+          {/* Image Grid - No animations, just static display */}
           <div ref={imageGridRef} className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((index) => (
               <div
@@ -207,7 +187,7 @@ const About: React.FC = () => {
                 <img
                   src={`/photo${index}.jpg`}
                   alt={`Event ${index}`}
-                  className="w-full h-full object-cover rounded-2xl group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover rounded-2xl"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
