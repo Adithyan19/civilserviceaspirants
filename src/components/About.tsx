@@ -185,7 +185,7 @@ const About: React.FC = () => {
                 className="aspect-square bg-white/10 rounded-2xl border border-white/10 flex items-center justify-center backdrop-blur-sm hover:border-white/50 transition-all duration-300 hover:shadow-md group overflow-hidden"
               >
                 <img
-                  src={`/photo${index}.jpg`}
+                  src={`/photo${index}.webp`}
                   alt={`Event ${index}`}
                   className="w-full h-full object-cover rounded-2xl"
                   onError={(e) => {
