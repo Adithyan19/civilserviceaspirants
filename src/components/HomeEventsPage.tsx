@@ -278,10 +278,7 @@ const HomeEventsPage: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Users className="w-4 h-4" />
-                      <span>
-                        {event.attendees ?? "?"}/{event.max_participants}{" "}
-                        participants
-                      </span>
+                      <span>{event.max_participants} participants</span>
                     </div>
                   </div>
                 </div>
