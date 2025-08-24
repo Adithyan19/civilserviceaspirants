@@ -280,9 +280,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         isValid: false,
       });
 
-      showSuccess(
-        "🎉 Registration successful! Welcome to the Civil Servants Club.",
-      );
+      showSuccess("🎉 Registration successful!, Please login .");
 
       setTimeout(() => {
         handleClose();

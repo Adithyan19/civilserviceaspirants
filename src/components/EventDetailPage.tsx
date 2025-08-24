@@ -9,6 +9,9 @@ import {
   Globe,
   Phone,
   User,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Footer from "./Footer";
 import { api } from "../utils/api";
@@ -35,6 +38,8 @@ interface EventDetail {
   full_description?: string;
   agenda?: string[];
   requirements?: string[];
+  is_active?: boolean;
+  EVENT_PHOTOS?: { photo_url: string }[];
 }
 
 const EventDetailPage: React.FC<EventDetailPageProps> = ({
@@ -45,6 +50,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
   const navigate = useNavigate();
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
 
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString("en-GB", {
@@ -63,14 +69,60 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
 
   const handleEnrollClick = () => {
     if (!user) {
-      console.log("Opening login modal..."); // Debug log
-      onLoginClick(); // This will open the login modal
+      onLoginClick();
       return;
     }
-    // TODO: Add enrollment API call here when user is logged in
     console.log("Enrolling user:", user.email);
-    // You can add your enrollment logic here
   };
+
+  const openLightbox = (index: number) => {
+    setSelectedPhoto(index);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeLightbox = () => {
+    setSelectedPhoto(null);
+    document.body.style.overflow = "unset";
+  };
+
+  const navigatePhoto = (direction: "prev" | "next") => {
+    if (!event?.EVENT_PHOTOS || selectedPhoto === null) return;
+
+    const totalPhotos = event.EVENT_PHOTOS.length;
+    if (direction === "prev") {
+      setSelectedPhoto(
+        selectedPhoto === 0 ? totalPhotos - 1 : selectedPhoto - 1,
+      );
+    } else {
+      setSelectedPhoto(
+        selectedPhoto === totalPhotos - 1 ? 0 : selectedPhoto + 1,
+      );
+    }
+  };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (selectedPhoto === null) return;
+
+      switch (e.key) {
+        case "Escape":
+          closeLightbox();
+          break;
+        case "ArrowLeft":
+          navigatePhoto("prev");
+          break;
+        case "ArrowRight":
+          navigatePhoto("next");
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [selectedPhoto]);
+
+  const isCompleted = event?.is_active === false;
 
   if (loading) {
     return (
@@ -104,24 +156,14 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
     <div className="bg-[#0f172a] min-h-screen text-white">
       {/* Header */}
       <div className="container mx-auto px-6 py-6 relative flex items-center">
-        {/* Spacer element ensures height */}
         <div className="h-10" />
-
-        {/* Back button */}
         <button
           onClick={() => navigate("/events")}
-          className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm
-               border border-white/20 rounded-full hover:border-neon-blue/50
-               hover:shadow-glow transition-all duration-300 group absolute left-6 top-1/2 -translate-y-1/2"
+          className="flex items-center justify-center w-10 h-10 bg-glass-bg backdrop-blur-sm border border-white/20 rounded-full hover:border-neon-blue/50 hover:shadow-glow transition-all duration-300 group absolute left-6 top-1/2 -translate-y-1/2"
         >
           <ArrowLeft className="w-5 h-5 text-white group-hover:text-neon-blue transition-colors" />
         </button>
-
-        {/* Centered Title */}
-        <h1
-          className="text-2xl font-bold absolute left-1/2 top-1/2 
-                 -translate-x-1/2 -translate-y-1/2"
-        >
+        <h1 className="text-2xl font-bold absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           Event Details
         </h1>
       </div>
@@ -151,52 +193,96 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-8 max-w-2xl">
+      <div className="container max-w-6xl mx-auto px-6 py-8">
         <div className="flex flex-col gap-8">
-          {/* Main Content - Stacked Vertically */}
-          <div className="space-y-8">
-            {/* About Section */}
-            <div className="glass-panel rounded-2xl border border-white/10 p-6">
-              <h2 className="text-2xl font-bold mb-4">About This Event</h2>
-              <p className="text-gray-300 leading-relaxed whitespace-pre-line break-words">
-                {event.full_description || event.description}
-              </p>
-            </div>
+          {/* About Section */}
+          <div className="glass-panel rounded-2xl border border-white/10 p-6">
+            <h2 className="text-2xl font-bold mb-4">About This Event</h2>
+            <p className="text-gray-300 leading-relaxed whitespace-pre-line break-words">
+              {event.full_description || event.description}
+            </p>
           </div>
 
-          {/* Event Information */}
-          <div className="glass-panel rounded-2xl border border-neon-blue/20 p-6">
-            <h3 className="text-xl font-bold mb-4">Event Information</h3>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <Calendar className="w-5 h-5 text-neon-blue flex-shrink-0" />
-                <span className="text-gray-300">{formatDate(event.date)}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-neon-blue flex-shrink-0" />
-                <span className="text-gray-300">{event.time}</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-neon-blue flex-shrink-0 mt-0.5" />
-                <span className="text-gray-300">{event.venue}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-neon-blue flex-shrink-0" />
-                <span className="text-gray-300">
-                  {event.max_participants} Slots
-                </span>
-              </div>
-              {event.organizer && (
-                <div className="flex items-center gap-3">
-                  <User className="w-5 h-5 text-neon-blue flex-shrink-0" />
-                  <span className="text-gray-300">{event.organizer}</span>
+          {/* Enhanced Photos Gallery - only if event is completed and photos exist */}
+          {isCompleted &&
+            event.EVENT_PHOTOS &&
+            event.EVENT_PHOTOS.length > 0 && (
+              <div className="relative overflow-hidden rounded-3xl border border-gradient-to-r from-neon-purple/30 via-neon-blue/20 to-neon-purple/30 bg-gradient-to-br from-slate-900/50 via-slate-800/30 to-slate-900/50 backdrop-blur-xl">
+                {/* Animated background elements */}
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute -top-40 -right-40 w-80 h-80 bg-neon-purple/10 rounded-full blur-3xl animate-pulse"></div>
+                  <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-neon-blue/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Contact Information */}
-          {(event.contact_1 || event.contact_2) && (
+                <div className="relative p-8">
+                  {/* Header */}
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 border border-neon-purple/30 mb-4">
+                      <div className="w-2 h-2 bg-neon-purple rounded-full animate-ping"></div>
+                      <span className="text-sm font-medium text-neon-purple">
+                        Event Completed
+                      </span>
+                    </div>
+                    <h3 className="text-3xl font-bold bg-gradient-to-r from-white via-neon-blue to-neon-purple bg-clip-text text-transparent mb-2">
+                      Event Memories
+                    </h3>
+                    <p className="text-gray-400 text-lg">
+                      Relive the amazing moments from this incredible event
+                    </p>
+                  </div>
+
+                  {/* Photo Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {event.EVENT_PHOTOS.map((photo, idx) => (
+                      <div
+                        key={idx}
+                        className="group relative overflow-hidden rounded-2xl cursor-pointer transform transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+                        onClick={() => openLightbox(idx)}
+                      >
+                        {/* Photo container */}
+                        <div className="relative aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900">
+                          <img
+                            src={photo.photo_url}
+                            alt={`Event photo ${idx + 1}`}
+                            className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                            loading="lazy"
+                          />
+
+                          {/* Gradient overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                          {/* Hover effects */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/20 via-transparent to-neon-blue/20 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+
+                          {/* Photo number indicator */}
+                          <div className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                            {idx + 1}
+                          </div>
+                        </div>
+
+                        {/* Glow effect */}
+                        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                          <div className="absolute inset-0 rounded-2xl shadow-lg shadow-neon-purple/25 group-hover:shadow-neon-blue/25 transition-all duration-300"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Stats */}
+                  <div className="text-center mt-8 pt-6 border-t border-white/10">
+                    <p className="text-gray-400">
+                      <span className="text-2xl font-bold text-neon-blue">
+                        {event.EVENT_PHOTOS.length}
+                      </span>{" "}
+                      memories captured
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          {/* Contact Information only for ongoing events */}
+          {!isCompleted && (event.contact_1 || event.contact_2) && (
             <div className="glass-panel rounded-2xl border border-neon-purple/20 p-6">
               <h3 className="text-xl font-bold mb-4">Contact Information</h3>
               <div className="space-y-3">
@@ -226,42 +312,94 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
             </div>
           )}
 
-          {/* Enrollment Section */}
-          <div className="glass-panel rounded-2xl border border-neon-purple/20 p-6">
-            <h3 className="text-xl font-bold mb-4">Ready to Join?</h3>
-            <p className="text-gray-300 text-sm mb-6">
-              Secure your spot in this exclusive event. Limited seats available!
-            </p>
+          {/* Enroll Button only for ongoing events */}
+          {!isCompleted && (
+            <div className="glass-panel rounded-2xl border border-neon-purple/20 p-6">
+              <h3 className="text-xl font-bold mb-4">Ready to Join?</h3>
+              <p className="text-gray-300 text-sm mb-6">
+                Secure your spot in this exclusive event. Limited seats
+                available!
+              </p>
 
-            {/* Show different states based on user login status */}
-            {user ? (
-              <div className="space-y-3">
-                <button
-                  onClick={handleEnrollClick}
-                  className="w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-neon-blue/50"
-                >
-                  Enroll Now
-                </button>
-                <p className="text-xs text-gray-400 text-center">
+              <button
+                onClick={handleEnrollClick}
+                className="w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-neon-blue/50"
+              >
+                Enroll Now
+              </button>
+
+              {user ? (
+                <p className="text-xs text-gray-400 text-center mt-3">
                   Logged in as {user.email}
                 </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <button
-                  onClick={handleEnrollClick}
-                  className="w-full py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-lg hover:from-neon-blue hover:to-neon-purple hover:shadow-glow transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-neon-blue/50"
-                >
-                  Login to Enroll
-                </button>
-                <p className="text-xs text-gray-400 text-center">
+              ) : (
+                <p className="text-xs text-gray-400 text-center mt-3">
                   You need to login to enroll in events
                 </p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {selectedPhoto !== null && event?.EVENT_PHOTOS && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={closeLightbox}
+        >
+          <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
+            {/* Close button */}
+            <button
+              onClick={closeLightbox}
+              className="absolute top-6 right-6 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:text-neon-blue transition-all duration-300 group"
+            >
+              <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+            </button>
+
+            {/* Navigation buttons */}
+            {event.EVENT_PHOTOS.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigatePhoto("prev");
+                  }}
+                  className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:text-neon-purple transition-all duration-300 group z-10"
+                >
+                  <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform duration-300" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigatePhoto("next");
+                  }}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:text-neon-purple transition-all duration-300 group z-10"
+                >
+                  <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                </button>
+              </>
+            )}
+
+            {/* Main image */}
+            <div
+              className="relative max-w-full max-h-full flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={event.EVENT_PHOTOS[selectedPhoto].photo_url}
+                alt={`Event photo ${selectedPhoto + 1}`}
+                className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+              />
+
+              {/* Photo counter */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/70 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+                {selectedPhoto + 1} / {event.EVENT_PHOTOS.length}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

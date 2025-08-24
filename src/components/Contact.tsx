@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { api } from "../utils/api";
+import { useToast } from "./ToastContext";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,6 +12,8 @@ const Contact: React.FC = () => {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const contactInfoRef = useRef<HTMLDivElement>(null);
+
+  const { showSuccess, showError } = useToast();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -87,13 +91,48 @@ const Contact: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic validation
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.message.trim()
+    ) {
+      showError("Please fill in all fields");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      showError("Please enter a valid email address");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await api.post("/api/contact", {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        message: formData.message.trim(),
+      });
 
-    setFormData({ name: "", email: "", message: "" });
-    setIsSubmitting(false);
-    alert("Message sent successfully!");
+      if (response.data.success) {
+        showSuccess("Message sent successfully! We'll get back to you soon.");
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        showError(response.data.error || "Failed to send message");
+      }
+    } catch (error: any) {
+      console.error("Contact form error:", error);
+      const errorMsg =
+        error.response?.data?.error ||
+        "Failed to send message. Please try again later.";
+      showError(errorMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [

@@ -2,7 +2,14 @@ import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useNavigate } from "react-router-dom";
-import { Users, BookOpen, Award, Target, ArrowRight } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  Award,
+  Target,
+  ArrowRight,
+  Newspaper,
+} from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -86,7 +93,7 @@ const About: React.FC = () => {
         "Structured approach to help you achieve your civil services career aspirations.",
     },
     {
-      icon: <Target className="w-8 h-8" />,
+      icon: <Newspaper className="w-8 h-8" />,
       title: "Current Affairs",
       description:
         "Stay updated with latest current affairs and their relevance to civil services preparation.",

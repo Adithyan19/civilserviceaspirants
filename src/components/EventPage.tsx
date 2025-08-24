@@ -12,9 +12,14 @@ import {
   Users,
   Globe,
   Phone,
+  Image,
+  X,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { api } from "../utils/api";
-import { useToast } from "./ToastContext"; // Import toast hook
+import { useToast } from "./ToastContext";
 
 interface EventDetails {
   id: string;
@@ -28,6 +33,8 @@ interface EventDetails {
   img_url: string;
   contact_1: string;
   contact_2: string;
+  is_active?: boolean;
+  EVENT_PHOTOS?: { photo_url: string }[];
 }
 
 interface EventPageProps {
@@ -44,25 +51,25 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
 
-  const { showError, showSuccess } = useToast();
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+  const { showError, showSuccess } = useToast();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkEnrollment = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
-
       try {
         const res = await api.get(`/api/check-enrollment/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.data.enrolled) setIsEnrolled(true);
       } catch {
-        console.error("Failed to check enrollment status");
+        // Swallow error
       }
     };
-
     checkEnrollment();
   }, [id]);
 
@@ -88,7 +95,7 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
         const res = await api.get<EventDetails>(`/api/getevent/${id}`);
         setEvent(res.data);
       } catch (err) {
-        console.error("Failed to load event");
+        // Error handling (event not found)
       } finally {
         setLoading(false);
       }
@@ -102,19 +109,11 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
         showError("You must be logged in to enroll for an event.");
         return;
       }
-
-      console.log("📤 Sending enrollment request for event:", id);
-
       const res = await api.post(
         "/api/enroll-event",
         { eventId: id },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
-
-      console.log("✅ Enrollment Response:", res.data);
-
       if (res.data.success) {
         showSuccess("Enrolled successfully!");
         setEvent((prev) =>
@@ -126,40 +125,23 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
         setShowEnrollModal(false);
       }
     } catch (error: any) {
-      console.error("❌ Enrollment request failed:", error);
-
       if (error.response) {
-        // Server responded with an error
-        console.error("🔍 Server Response Data:", error.response.data);
-        console.error("🌐 Status Code:", error.response.status);
-        console.error("📩 Response Headers:", error.response.headers);
-
         const errorMessage =
           error.response.data?.error ||
           "Error enrolling. Please try again later.";
-
-        // Handle specific error cases
         if (errorMessage.includes("already enrolled")) {
           showError("You are already enrolled in this event.");
           setIsEnrolled(true);
           setShowEnrollModal(false);
         } else if (errorMessage.includes("No slots left")) {
           showError("Sorry, no slots are available for this event.");
-          // Optionally update the UI to show event is full
           setEvent((prev) => (prev ? { ...prev, max_participants: 0 } : prev));
         } else {
           showError(errorMessage);
         }
       } else if (error.request) {
-        // Request made but no server response
-        console.error(
-          "⚠️ No Response received from the server:",
-          error.request,
-        );
         showError("No response from the server. Please check your connection.");
       } else {
-        // Something else happened while setting up the request
-        console.error("💥 Axios setup error:", error.message);
         showError("Unexpected error occurred. Please try again later.");
       }
     }
@@ -203,6 +185,56 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
         return "bg-gray-400/20 text-gray-400 border-gray-400/30";
     }
   };
+
+  const openImageModal = (index: number) => {
+    setSelectedImageIndex(index);
+    setShowImageModal(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeImageModal = () => {
+    setShowImageModal(false);
+    document.body.style.overflow = "unset";
+  };
+
+  const nextImage = () => {
+    if (event?.EVENT_PHOTOS) {
+      setSelectedImageIndex((prev) =>
+        prev === event.EVENT_PHOTOS!.length - 1 ? 0 : prev + 1,
+      );
+    }
+  };
+  const prevImage = () => {
+    if (event?.EVENT_PHOTOS) {
+      setSelectedImageIndex((prev) =>
+        prev === 0 ? event.EVENT_PHOTOS!.length - 1 : prev - 1,
+      );
+    }
+  };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!showImageModal) return;
+
+      switch (e.key) {
+        case "Escape":
+          closeImageModal();
+          break;
+        case "ArrowLeft":
+          prevImage();
+          break;
+        case "ArrowRight":
+          nextImage();
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [showImageModal]);
+
+  const isCompleted = event?.is_active === false;
 
   if (loading) {
     return (
@@ -254,7 +286,6 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
                 Event Details
               </h1>
             </div>
-
             {/* User Account Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
@@ -268,14 +299,13 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
                 </div>
                 <ChevronDown className="w-4 h-4 text-white group-hover:text-neon-blue" />
               </button>
-
               {showUserDropdown && (
                 <>
                   <div
                     className="fixed inset-0 z-[999]"
                     onClick={() => setShowUserDropdown(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-gray-900/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl z-[1000] overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-gray-900/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl z- overflow-hidden">
                     <div className="bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 px-6 py-4 border-b border-white/10">
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-white font-bold text-lg select-none">
@@ -363,9 +393,7 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
                   alt={event.title}
                   className="w-full h-full object-cover"
                 />
-                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                {/* Event Title */}
                 <div className="absolute bottom-6 left-6 right-6">
                   <div
                     className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${getModeColor(
@@ -382,6 +410,91 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
               </div>
             </div>
 
+            {/* Enhanced Completed Event Gallery */}
+            {isCompleted &&
+              Array.isArray(event.EVENT_PHOTOS) &&
+              event.EVENT_PHOTOS.length > 0 && (
+                <div className="relative overflow-hidden rounded-3xl border border-gradient-to-r from-neon-purple/30 via-neon-blue/20 to-neon-purple/30 bg-gradient-to-br from-slate-900/50 via-slate-800/30 to-slate-900/50 backdrop-blur-xl mb-8">
+                  {/* Animated background elements */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-neon-purple/10 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-neon-blue/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+                  </div>
+
+                  <div className="relative p-8">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 border border-neon-purple/30 mb-4">
+                        <div className="w-2 h-2 bg-neon-purple rounded-full animate-ping"></div>
+                        <span className="text-sm font-medium text-neon-purple">
+                          Event Completed
+                        </span>
+                      </div>
+                      <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-neon-blue to-neon-purple bg-clip-text text-transparent mb-2 flex items-center justify-center gap-3">
+                        <Image className="w-8 h-8 text-neon-blue" />
+                        Event Memories
+                      </h2>
+                      <p className="text-gray-400 text-lg">
+                        Relive the amazing moments from this incredible event
+                      </p>
+                    </div>
+
+                    {/* Photo Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {event.EVENT_PHOTOS!.map((photo, index) => (
+                        <div
+                          key={index}
+                          className="group relative overflow-hidden rounded-2xl cursor-pointer transform transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+                          onClick={() => openImageModal(index)}
+                        >
+                          {/* Photo container */}
+                          <div className="relative aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900">
+                            <img
+                              src={photo.photo_url}
+                              alt={`Event photo ${index + 1}`}
+                              className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                            />
+
+                            {/* Gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                            {/* Hover effects */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/20 via-transparent to-neon-blue/20 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+
+                            {/* View icon and photo number */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                              <div className="bg-black/50 backdrop-blur-sm rounded-full p-3 transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                                <Eye className="w-6 h-6 text-white" />
+                              </div>
+                            </div>
+
+                            {/* Photo number indicator */}
+                            <div className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                              {index + 1}
+                            </div>
+                          </div>
+
+                          {/* Glow effect */}
+                          <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                            <div className="absolute inset-0 rounded-2xl shadow-lg shadow-neon-purple/25 group-hover:shadow-neon-blue/25 transition-all duration-300"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="text-center mt-8 pt-6 border-t border-white/10">
+                      <p className="text-gray-400">
+                        <span className="text-2xl font-bold text-neon-blue">
+                          {event.EVENT_PHOTOS!.length}
+                        </span>{" "}
+                        memories captured
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             {/* About Event */}
             <div className="glass-panel p-6 rounded-2xl border border-white/10 mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
@@ -392,106 +505,105 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
               </p>
             </div>
 
-            {/* Event Information */}
-            <div className="glass-panel p-6 rounded-2xl border border-neon-blue/20 mb-8">
-              <h3 className="text-xl font-bold text-white mb-6">
-                Event Information
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 " />
-                  <div>
-                    <p className="text-white font-medium">
-                      {new Date(event.date).toLocaleDateString()}
-                    </p>
-                    <p className="text-gray-400 text-sm">Date</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-5 h-5 " />
-                  <div>
-                    <p className="text-white font-medium">{event.time}</p>
-                    <p className="text-gray-400 text-sm">Time</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 " />
-                  <div>
-                    <p className="text-white font-medium">{event.venue}</p>
-                    <p className="text-gray-400 text-sm">Venue</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <Users className="w-5 h-5 " />
-                  <div>
-                    <p className="text-white font-medium">
-                      {event.max_participants}
-                    </p>
-                    <p className="text-gray-400 text-sm">Slots Available</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 " />
-                  <div>
-                    <p className="text-white font-medium">{event.contact_1}</p>
-                    <p className="text-gray-400 text-sm">Contact 1</p>
-                  </div>
-                </div>
-
-                {event.contact_2 && (
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-5 h-5 " />
-                    <div>
-                      <p className="text-white font-medium">
-                        {event.contact_2}
-                      </p>
-                      <p className="text-gray-400 text-sm">Contact 2</p>
+            {/* Event Info and Enrollment for ongoing events */}
+            {event.is_active !== false && (
+              <>
+                <div className="glass-panel p-6 rounded-2xl border border-neon-blue/20 mb-8">
+                  <h3 className="text-xl font-bold text-white mb-6">
+                    Event Information
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="w-5 h-5" />
+                      <div>
+                        <p className="text-white font-medium">
+                          {new Date(event.date).toLocaleDateString()}
+                        </p>
+                        <p className="text-gray-400 text-sm">Date</p>
+                      </div>
                     </div>
+                    <div className="flex items-center space-x-3">
+                      <Clock className="w-5 h-5" />
+                      <div>
+                        <p className="text-white font-medium">{event.time}</p>
+                        <p className="text-gray-400 text-sm">Time</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="w-5 h-5" />
+                      <div>
+                        <p className="text-white font-medium">{event.venue}</p>
+                        <p className="text-gray-400 text-sm">Venue</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Users className="w-5 h-5" />
+                      <div>
+                        <p className="text-white font-medium">
+                          {event.max_participants}
+                        </p>
+                        <p className="text-gray-400 text-sm">Slots Available</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Phone className="w-5 h-5" />
+                      <div>
+                        <p className="text-white font-medium">
+                          {event.contact_1}
+                        </p>
+                        <p className="text-gray-400 text-sm">Contact 1</p>
+                      </div>
+                    </div>
+                    {event.contact_2 && (
+                      <div className="flex items-center space-x-3">
+                        <Phone className="w-5 h-5" />
+                        <div>
+                          <p className="text-white font-medium">
+                            {event.contact_2}
+                          </p>
+                          <p className="text-gray-400 text-sm">Contact 2</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Enrollment section */}
+                {!isEnrolled && event.max_participants > 0 && (
+                  <div className="glass-panel p-6 rounded-2xl border border-neon-purple/20 mb-8">
+                    <h3 className="text-xl font-bold text-white mb-4">
+                      Ready to Join?
+                    </h3>
+                    <p className="text-gray-300 text-sm mb-6">
+                      Secure your spot in this exclusive event. Limited seats
+                      available!
+                    </p>
+                    <button
+                      onClick={() => setShowEnrollModal(true)}
+                      className="w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow transition-all duration-300 transform hover:scale-105"
+                    >
+                      Enroll Now
+                    </button>
+                    <p className="text-xs text-gray-400 mt-3 text-center">
+                      {event.max_participants} spots remaining • Click to secure
+                      your participation
+                    </p>
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Enrollment Section */}
-            {!isEnrolled && event.max_participants > 0 && (
-              <div className="glass-panel p-6 rounded-2xl border border-neon-purple/20 mb-8">
-                <h3 className="text-xl font-bold text-white mb-4">
-                  Ready to Join?
-                </h3>
-                <p className="text-gray-300 text-sm mb-6">
-                  Secure your spot in this exclusive event. Limited seats
-                  available!
-                </p>
-
-                <button
-                  onClick={() => setShowEnrollModal(true)}
-                  className="w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow transition-all duration-300 transform hover:scale-105"
-                >
-                  Enroll Now
-                </button>
-
-                <p className="text-xs text-gray-400 mt-3 text-center">
-                  {event.max_participants} spots remaining • Click to secure
-                  your participation
-                </p>
-              </div>
-            )}
-
-            {/* Success State */}
-            {isEnrolled && (
-              <div className="glass-panel p-6 rounded-2xl border border-green-400/20 mb-8">
-                <h3 className="text-xl font-bold text-white mb-4">
-                  ✅ Enrolled Successfully!
-                </h3>
-                <p className="text-gray-300 text-sm">
-                  You're all set for this event. Check your email for
-                  confirmation details.
-                </p>
-              </div>
+                {/* Success State */}
+                {isEnrolled && (
+                  <div className="glass-panel p-6 rounded-2xl border border-green-400/20 mb-8">
+                    <h3 className="text-xl font-bold text-white mb-4">
+                      ✅ Enrolled Successfully!
+                    </h3>
+                    <p className="text-gray-300 text-sm">
+                      You're all set for this event. Check your email for
+                      confirmation details.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -526,6 +638,68 @@ const EventPage: React.FC<EventPageProps> = ({ user, onLogout }) => {
             </div>
           </div>
         )}
+
+        {/* Enhanced Image Modal for completed event gallery */}
+        {showImageModal &&
+          isCompleted &&
+          Array.isArray(event.EVENT_PHOTOS) &&
+          event.EVENT_PHOTOS.length > 0 && (
+            <div
+              className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+              onClick={closeImageModal}
+            >
+              <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
+                {/* Close button */}
+                <button
+                  onClick={closeImageModal}
+                  className="absolute top-6 right-6 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:text-neon-blue transition-all duration-300 group"
+                >
+                  <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+                </button>
+
+                {/* Navigation buttons */}
+                {event.EVENT_PHOTOS!.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        prevImage();
+                      }}
+                      className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:text-neon-purple transition-all duration-300 group z-10"
+                    >
+                      <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform duration-300" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        nextImage();
+                      }}
+                      className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:text-neon-purple transition-all duration-300 group z-10"
+                    >
+                      <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                    </button>
+                  </>
+                )}
+
+                {/* Main image */}
+                <div
+                  className="relative max-w-full max-h-full flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <img
+                    src={event.EVENT_PHOTOS![selectedImageIndex].photo_url}
+                    alt={`Event photo ${selectedImageIndex + 1}`}
+                    className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+                  />
+
+                  {/* Photo counter */}
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/70 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+                    {selectedImageIndex + 1} / {event.EVENT_PHOTOS!.length}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
       </main>
     </div>
   );

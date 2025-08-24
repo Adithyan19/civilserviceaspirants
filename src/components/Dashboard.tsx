@@ -18,6 +18,7 @@ import {
   X,
   Search,
   Filter,
+  Image,
 } from "lucide-react";
 import { api } from "../utils/api";
 
@@ -28,7 +29,7 @@ interface DashboardProps {
   onOpenPDF: (
     url: string,
     title: string,
-    type: "newspaper" | "question",
+    type: "question" | "newspaper",
   ) => void;
   onLogout?: () => void;
 }
@@ -53,8 +54,8 @@ interface NewsItem {
   category: string;
   date: string;
   title: string;
-  url: string;
   posted_at: string;
+  url: string;
 }
 
 interface EventItem {
@@ -67,8 +68,10 @@ interface EventItem {
   date: string;
   time: string;
   img_url: string;
-  organizer_contact_1: string;
-  organizer_contact_2: string;
+  contact_1: string;
+  contact_2: string;
+  is_active?: boolean | null;
+  EVENT_PHOTOS?: { photo_url: string }[];
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
@@ -76,7 +79,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Data states
+  // Data states...
   const [questionPapers, setQuestionPapers] = useState<QuestionPaper[]>([]);
   const [loadingQP, setLoadingQP] = useState(false);
   const [errorQP, setErrorQP] = useState<string | null>(null);
@@ -89,11 +92,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [loadingNews, setLoadingNews] = useState(false);
   const [errorNews, setErrorNews] = useState<string | null>(null);
 
-  const [events, setEvents] = useState<EventItem[]>([]);
+  const [allEvents, setAllEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [errorEvents, setErrorEvents] = useState<string | null>(null);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>("TKMCE");
+  const [selectedCategory, setSelectedCategory] = useState("TKMCE");
+
   const categories = [
     "Global",
     "India",
@@ -103,11 +107,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     "UPSC",
   ];
 
-  // Search & Filter states for EVENTS
   const [searchTerm, setSearchTerm] = useState("");
   const [filterMode, setFilterMode] = useState<
     "all" | "online" | "offline" | "hybrid"
   >("all");
+
+  const [eventType, setEventType] = useState<"ongoing" | "completed">(
+    "ongoing",
+  );
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -122,14 +129,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         setShowUserDropdown(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showUserDropdown]);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     gsap.fromTo(
       ".dashboard-header",
       { y: -50, opacity: 0 },
@@ -157,7 +162,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
           trigger: ".dashboard-content",
           start: "top 80%",
           end: "bottom 20%",
-          toggleActions: "play none none reverse",
+          toggleActions: "play none pause reverse",
         },
       },
     );
@@ -169,7 +174,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     navigate("/");
   };
 
-  // Fetch events
+  // Fetch events when active section is 'events'
   useEffect(() => {
     if (activeSection === "events") {
       (async () => {
@@ -177,7 +182,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         setErrorEvents(null);
         try {
           const res = await api.get<EventItem[]>("/api/getevents");
-          setEvents(res.data);
+          setAllEvents(res.data || []);
         } catch {
           setErrorEvents("Failed to fetch events");
         } finally {
@@ -187,7 +192,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [activeSection]);
 
-  // Fetch question papers
+  // Other fetchers unchanged ...
+
   useEffect(() => {
     if (activeSection === "questions") {
       (async () => {
@@ -205,7 +211,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [activeSection]);
 
-  // Fetch newspapers
   useEffect(() => {
     if (activeSection === "newspapers") {
       (async () => {
@@ -223,7 +228,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [activeSection]);
 
-  // Fetch news
   useEffect(() => {
     if (activeSection === "news") {
       (async () => {
@@ -250,14 +254,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [news, activeSection]);
 
-  const sections = [
-    { id: "events", label: "Events", icon: Calendar },
-    { id: "questions", label: "Question Papers", icon: FileText },
-    { id: "newspapers", label: "Newspapers", icon: Newspaper },
-    { id: "news", label: "News", icon: Globe },
-  ];
+  // ✅ FIXED: classify explicitly
+  const ongoingEvents = allEvents.filter((e) => e.is_active !== false);
+  const completedEvents = allEvents.filter((e) => e.is_active === false);
 
-  const filteredEvents = events.filter((event) => {
+  const currentEvents =
+    eventType === "ongoing"
+      ? ongoingEvents.length > 0
+        ? ongoingEvents
+        : completedEvents
+      : completedEvents;
+
+  const filteredEvents = currentEvents.filter((event) => {
     const matchesSearch =
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -266,6 +274,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     return matchesSearch && matchesFilter;
   });
 
+  const sections = [
+    { id: "events", label: "Events", icon: Calendar },
+    { id: "questions", label: "Question Papers", icon: FileText },
+    { id: "newspapers", label: "Newspapers", icon: Newspaper },
+    { id: "news", label: "News", icon: Globe },
+  ];
+
   const renderContent = () => {
     switch (activeSection) {
       case "events":
@@ -273,13 +288,52 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
           return (
             <p className="text-gray-400 text-center py-8">Loading events...</p>
           );
+
         if (errorEvents)
           return <p className="text-red-500 text-center py-8">{errorEvents}</p>;
+
+        // Show no events message only if no error and no events in current category
+        if (!loadingEvents && filteredEvents.length === 0) {
+          const currentEventType =
+            eventType === "ongoing" ? "ongoing" : "completed";
+          return (
+            <p className="text-gray-400 text-center py-8">
+              No {currentEventType} events found
+              {searchTerm ? " matching your search" : ""}.
+            </p>
+          );
+        }
+
         return (
           <div className="max-w-lg sm:max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 space-y-6">
-            {/* Search + Filter Bar */}
+            {/* Event Type Toggle Buttons */}
+            <div className="flex justify-center mb-6">
+              <div className="bg-white/5 rounded-lg p-1 border border-white/10 flex space-x-2">
+                <button
+                  onClick={() => setEventType("ongoing")}
+                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                    eventType === "ongoing"
+                      ? "bg-neon-blue text-white"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Ongoing Events ({ongoingEvents.length})
+                </button>
+                <button
+                  onClick={() => setEventType("completed")}
+                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                    eventType === "completed"
+                      ? "bg-neon-blue text-white"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Completed Events ({completedEvents.length})
+                </button>
+              </div>
+            </div>
+
+            {/* Search and filter inputs */}
             <div className="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto mb-6">
-              {/* Search with Icon */}
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
@@ -290,8 +344,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                   className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50"
                 />
               </div>
-
-              {/* Filter with Icon */}
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <select
@@ -315,6 +367,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
               </div>
             </div>
 
+            {/* Event cards */}
             {filteredEvents.map((event) => (
               <div
                 key={event.id}
@@ -387,24 +440,46 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-3 pt-3 border-t border-white/10">
-                    <span className="text-gray-400 text-xs sm:text-sm">
-                      🎟 Max Participants:{" "}
-                      <span className="text-white font-semibold">
-                        {event.max_participants}
-                      </span>
-                    </span>
-                    <button
-                      onClick={() => navigate(`/dashboard/event/${event.id}`)}
-                      className="w-full sm:w-auto bg-neon-blue hover:bg-neon-blue/80 px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 min-w-[110px]"
-                    >
-                      Enroll Now
-                    </button>
+                    {eventType === "ongoing" && (
+                      <>
+                        <span className="text-gray-400 text-xs sm:text-sm">
+                          🎟 Max Participants:{" "}
+                          <span className="text-white font-semibold">
+                            {event.max_participants}
+                          </span>
+                        </span>
+                        <button
+                          onClick={() =>
+                            navigate(`/dashboard/event/${event.id}`)
+                          }
+                          className="w-full sm:w-auto bg-neon-blue hover:bg-neon-blue/80 px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 min-w-[110px]"
+                        >
+                          Enroll Now
+                        </button>
+                      </>
+                    )}
+                    {eventType === "completed" && (
+                      <>
+                        <span className="text-gray-400 text-xs sm:text-sm">
+                          📸 Event Gallery Available
+                        </span>
+                        <button
+                          onClick={() =>
+                            navigate(`/dashboard/event/${event.id}`)
+                          }
+                          className="w-full sm:w-auto bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 min-w-[110px] flex items-center gap-2"
+                        >
+                          <Image className="w-4 h-4" /> View Gallery
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
         );
+
       case "questions":
         if (loadingQP)
           return (
@@ -529,7 +604,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
         return (
           <div className="space-y-6 sm:space-y-8">
-            {/* Category buttons - improved mobile layout */}
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2 sm:gap-3">
                 {categories.map((category) => {
@@ -633,13 +707,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
 
               {showUserDropdown && (
                 <>
-                  {/* Overlay */}
                   <div
                     className="fixed inset-0 z-[998]"
                     onClick={() => setShowUserDropdown(false)}
                   />
-                  {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-gray-900/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl z-[999] overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-gray-900/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl z- overflow-hidden">
                     <div className="bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10">
                       <div className="flex items-center space-x-3 sm:space-x-4">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg">
@@ -695,7 +767,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                           </p>
                         </div>
                       </button>
-                      <div className="border-t border-white/10 my-1 sm:my-2"></div>
+                      <div className="border-t border-white/10 my-1 sm:my-2" />
                       <button
                         onClick={handleLogout}
                         className="w-full px-4 sm:px-6 py-2 sm:py-3 text-left text-red-400 hover:bg-red-500/10 flex items-center space-x-3 transition-all duration-300"

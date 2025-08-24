@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Search,
   Filter,
+  Image,
 } from "lucide-react";
 import { gsap } from "gsap";
 import Footer from "./Footer";
@@ -26,17 +27,10 @@ interface EventItem {
   max_participants: number;
   organizer?: string;
   img_url: string; // from Supabase/backend
+  is_active?: boolean; // used to distinguish ongoing/completed
 }
 
-interface HomeEventsPageProps {
-  user: { email: string; role?: string } | null;
-  onLoginClick: () => void;
-}
-
-const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
-  user: _user,
-  onLoginClick,
-}) => {
+const HomeEventsPage: React.FC = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
@@ -45,6 +39,9 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
   const [filterMode, setFilterMode] = useState<
     "all" | "online" | "offline" | "hybrid"
   >("all");
+  const [eventType, setEventType] = useState<"ongoing" | "completed">(
+    "ongoing",
+  );
 
   useEffect(() => {
     fetchEvents();
@@ -114,13 +111,18 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
     }
   };
 
+  // Filter events by ongoing/completed, search term, and mode filter
   const filteredEvents = events.filter((event) => {
+    const matchesType =
+      eventType === "ongoing"
+        ? event.is_active !== false
+        : event.is_active === false;
     const matchesSearch =
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter =
       filterMode === "all" || event.mode.toLowerCase() === filterMode;
-    return matchesSearch && matchesFilter;
+    return matchesType && matchesSearch && matchesFilter;
   });
 
   const handleEventClick = (eventId: string) => {
@@ -152,6 +154,30 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
           <h1 className="text-3xl font-extrabold text-white text-center">
             Events
           </h1>
+        </div>
+
+        {/* Toggle Buttons */}
+        <div className="flex justify-center mb-6 space-x-4 max-w-2xl mx-auto">
+          <button
+            onClick={() => setEventType("ongoing")}
+            className={`px-6 py-2 rounded-md font-semibold ${
+              eventType === "ongoing"
+                ? "bg-neon-blue text-white"
+                : "bg-white/10 text-gray-400 hover:text-white"
+            }`}
+          >
+            Ongoing Events
+          </button>
+          <button
+            onClick={() => setEventType("completed")}
+            className={`px-6 py-2 rounded-md font-semibold ${
+              eventType === "completed"
+                ? "bg-neon-blue text-white"
+                : "bg-white/10 text-gray-400 hover:text-white"
+            }`}
+          >
+            Completed Events
+          </button>
         </div>
 
         {/* Search + Filter Section */}
@@ -201,7 +227,8 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
           filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="event-card glass-panel rounded-2xl border border-white/10 overflow-hidden hover:border-neon-blue/30 transition-all duration-300 transform hover:scale-105 flex flex-col"
+              className="event-card glass-panel rounded-2xl border border-white/10 overflow-hidden hover:border-neon-blue/30 transition-all duration-300 transform hover:scale-105 flex flex-col cursor-pointer"
+              onClick={() => handleEventClick(event.id)}
             >
               {/* Image */}
               <div className="relative h-48">
@@ -212,7 +239,9 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div
-                  className={`absolute top-4 left-4 inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium ${getModeColor(event.mode)} border backdrop-blur-sm`}
+                  className={`absolute top-4 left-4 inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium ${getModeColor(
+                    event.mode,
+                  )} border backdrop-blur-sm`}
                 >
                   {getModeIcon(event.mode)}
                   <span className="capitalize">{event.mode}</span>
@@ -258,10 +287,25 @@ const HomeEventsPage: React.FC<HomeEventsPageProps> = ({
                 </div>
                 {/* Button */}
                 <button
-                  className="w-full py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow transition duration-300 hover:scale-105 mt-4"
-                  onClick={() => handleEventClick(event.id)}
+                  type="button"
+                  className={`w-full py-3 font-semibold rounded-lg hover:shadow-glow transition duration-300 mt-4 ${
+                    eventType === "ongoing"
+                      ? "bg-gradient-to-r from-neon-blue to-neon-purple text-white hover:scale-105"
+                      : "bg-green-600 text-white hover:bg-green-700 flex items-center justify-center gap-2"
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEventClick(event.id);
+                  }}
                 >
-                  View &amp; Enroll
+                  {eventType === "ongoing" ? (
+                    "View & Enroll"
+                  ) : (
+                    <>
+                      <Image className="w-5 h-5" />
+                      View Gallery
+                    </>
+                  )}
                 </button>
               </div>
             </div>
