@@ -52,6 +52,48 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
 
+  // Touch handling states
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      navigatePhoto("next");
+    } else if (isRightSwipe) {
+      navigatePhoto("prev");
+    }
+  };
+
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString("en-GB", {
       day: "numeric",
@@ -226,9 +268,12 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
                     <h3 className="text-3xl font-bold bg-gradient-to-r from-white via-neon-blue to-neon-purple bg-clip-text text-transparent mb-2">
                       Event Memories
                     </h3>
-                    <p className="text-gray-400 text-lg">
-                      Relive the amazing moments from this incredible event
-                    </p>
+                    {/* Mobile swipe instruction */}
+                    {isMobile && (
+                      <p className="text-neon-blue/70 text-sm mt-2 animate-pulse">
+                        Tap photos to view
+                      </p>
+                    )}
                   </div>
 
                   {/* Photo Grid */}
@@ -342,23 +387,26 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
         </div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Enhanced Lightbox Modal with Touch Support */}
       {selectedPhoto !== null && event?.EVENT_PHOTOS && (
         <div
           className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={closeLightbox}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
             {/* Close button */}
             <button
               onClick={closeLightbox}
-              className="absolute top-6 right-6 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:text-neon-blue transition-all duration-300 group"
+              className="absolute top-4 right-4 md:top-6 md:right-6 z-10 w-10 h-10 md:w-12 md:h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:text-neon-blue transition-all duration-300 group"
             >
-              <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+              <X className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-90 transition-transform duration-300" />
             </button>
 
-            {/* Navigation buttons */}
-            {event.EVENT_PHOTOS.length > 1 && (
+            {/* Navigation buttons - Hidden on mobile */}
+            {!isMobile && event.EVENT_PHOTOS.length > 1 && (
               <>
                 <button
                   onClick={(e) => {
@@ -390,13 +438,48 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({
                 src={event.EVENT_PHOTOS[selectedPhoto].photo_url}
                 alt={`Event photo ${selectedPhoto + 1}`}
                 className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+                draggable={false}
               />
 
               {/* Photo counter */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/70 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+              <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 px-3 py-2 md:px-4 md:py-2 bg-black/70 backdrop-blur-sm rounded-full text-white text-sm font-medium">
                 {selectedPhoto + 1} / {event.EVENT_PHOTOS.length}
               </div>
+
+              {/* Mobile swipe indicators */}
+              {isMobile && event.EVENT_PHOTOS.length > 1 && (
+                <>
+                  {/* Left swipe indicator */}
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col items-center text-white/60 pointer-events-none">
+                    <ChevronLeft className="w-6 h-6 animate-pulse" />
+                  </div>
+                  {/* Right swipe indicator */}
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center text-white/60 pointer-events-none">
+                    <ChevronRight className="w-6 h-6 animate-pulse" />
+                  </div>
+                </>
+              )}
             </div>
+
+            {/* Mobile navigation dots */}
+            {isMobile && event.EVENT_PHOTOS.length > 1 && (
+              <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 flex space-x-2">
+                {event.EVENT_PHOTOS.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedPhoto(index);
+                    }}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === selectedPhoto
+                        ? "bg-neon-blue w-6"
+                        : "bg-white/40 hover:bg-white/60"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

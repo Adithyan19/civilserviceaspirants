@@ -276,10 +276,6 @@ const HomeEventsPage: React.FC = () => {
                       <MapPin className="w-4 h-4" />
                       <span className="truncate">{event.venue}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Users className="w-4 h-4" />
-                      <span>{event.max_participants} participants</span>
-                    </div>
                   </div>
                 </div>
                 {/* Button */}

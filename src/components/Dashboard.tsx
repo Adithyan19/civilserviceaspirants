@@ -254,24 +254,28 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [news, activeSection]);
 
-  // ✅ FIXED: classify explicitly
+  // ✅ FIXED: Filter events based on is_active status (like HomeEventsPage)
   const ongoingEvents = allEvents.filter((e) => e.is_active !== false);
   const completedEvents = allEvents.filter((e) => e.is_active === false);
 
-  const currentEvents =
-    eventType === "ongoing"
-      ? ongoingEvents.length > 0
-        ? ongoingEvents
-        : completedEvents
-      : completedEvents;
+  // ✅ FIXED: Filter events based on current eventType and other filters (like HomeEventsPage)
+  const filteredEvents = allEvents.filter((event) => {
+    // Filter by event type (ongoing/completed)
+    const matchesType =
+      eventType === "ongoing"
+        ? event.is_active !== false
+        : event.is_active === false;
 
-  const filteredEvents = currentEvents.filter((event) => {
+    // Filter by search term
     const matchesSearch =
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Filter by mode
     const matchesFilter =
       filterMode === "all" || event.mode.toLowerCase() === filterMode;
-    return matchesSearch && matchesFilter;
+
+    return matchesType && matchesSearch && matchesFilter;
   });
 
   const sections = [
@@ -292,15 +296,34 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
         if (errorEvents)
           return <p className="text-red-500 text-center py-8">{errorEvents}</p>;
 
-        // Show no events message only if no error and no events in current category
+        // ✅ FIXED: Show appropriate message based on current eventType
         if (!loadingEvents && filteredEvents.length === 0) {
           const currentEventType =
             eventType === "ongoing" ? "ongoing" : "completed";
           return (
-            <p className="text-gray-400 text-center py-8">
-              No {currentEventType} events found
-              {searchTerm ? " matching your search" : ""}.
-            </p>
+            <div className="text-center py-8">
+              <p className="text-gray-400 mb-4">
+                No {currentEventType} events found
+                {searchTerm ? " matching your search" : ""}.
+              </p>
+              {/* ✅ ADDED: Suggest switching to other event type if current is empty */}
+              {eventType === "ongoing" && completedEvents.length > 0 && (
+                <button
+                  onClick={() => setEventType("completed")}
+                  className="text-neon-blue hover:text-neon-purple transition-colors text-sm"
+                >
+                  View {completedEvents.length} completed events instead →
+                </button>
+              )}
+              {eventType === "completed" && ongoingEvents.length > 0 && (
+                <button
+                  onClick={() => setEventType("ongoing")}
+                  className="text-neon-blue hover:text-neon-purple transition-colors text-sm"
+                >
+                  View {ongoingEvents.length} ongoing events instead →
+                </button>
+              )}
+            </div>
           );
         }
 
@@ -479,7 +502,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
             ))}
           </div>
         );
-
       case "questions":
         if (loadingQP)
           return (
