@@ -19,6 +19,10 @@ import {
   Search,
   Filter,
   Image,
+  BookOpen,
+  ThumbsUp,
+  ThumbsDown,
+  PenLine,
 } from "lucide-react";
 import { api } from "../utils/api";
 
@@ -74,6 +78,18 @@ interface EventItem {
   EVENT_PHOTOS?: { photo_url: string }[];
 }
 
+interface ArticleItem {
+  id: string;
+  title: string;
+  content: string;
+  author_id: number;
+  author_name: string;
+  created_at: string;
+  status: string;
+  likes_count: number;
+  dislikes_count: number;
+}
+
 const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [activeSection, setActiveSection] = useState("events");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -95,6 +111,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [allEvents, setAllEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [errorEvents, setErrorEvents] = useState<string | null>(null);
+
+  // Articles state
+  const [articles, setArticles] = useState<ArticleItem[]>([]);
+  const [loadingArticles, setLoadingArticles] = useState(false);
+  const [errorArticles, setErrorArticles] = useState<string | null>(null);
+  const [showAddArticleModal, setShowAddArticleModal] = useState(false);
+  const [showArticleDetail, setShowArticleDetail] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<ArticleItem | null>(null);
+  const [articleTitle, setArticleTitle] = useState("");
+  const [articleContent, setArticleContent] = useState("");
+  const [submittingArticle, setSubmittingArticle] = useState(false);
+  const [userReactions, setUserReactions] = useState<Record<string, string>>({});
+  const [reactingArticleId, setReactingArticleId] = useState<string | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState("TKMCE");
 
@@ -254,6 +283,137 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     }
   }, [news, activeSection]);
 
+  // Fetch articles
+  useEffect(() => {
+    if (activeSection === "articles") {
+      (async () => {
+        setLoadingArticles(true);
+        setErrorArticles(null);
+        try {
+          const res = await api.get<ArticleItem[]>("/api/articles");
+          setArticles(res.data || []);
+          // Fetch user's reactions
+          const token = localStorage.getItem("token");
+          if (token) {
+            try {
+              const reactRes = await api.get("/api/articles/my-reactions", {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              setUserReactions(reactRes.data || {});
+            } catch {
+              // Not logged in or error - ignore
+            }
+          }
+        } catch {
+          setErrorArticles("Failed to fetch articles");
+        } finally {
+          setLoadingArticles(false);
+        }
+      })();
+    }
+  }, [activeSection]);
+
+  // Article submission handler
+  const handleArticleSubmit = async () => {
+    if (!articleTitle.trim() || !articleContent.trim()) return;
+    setSubmittingArticle(true);
+    try {
+      const token = localStorage.getItem("token");
+      await api.post(
+        "/api/articles",
+        { title: articleTitle, content: articleContent },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setArticleTitle("");
+      setArticleContent("");
+      setShowAddArticleModal(false);
+      // Show success via a simple alert-style card (we don't have toast in Dashboard)
+      alert("Article submitted for admin approval!");
+    } catch {
+      alert("Failed to submit article. Please try again.");
+    } finally {
+      setSubmittingArticle(false);
+    }
+  };
+
+  // Article reaction handler
+  const handleArticleReaction = async (articleId: string, reaction: "like" | "dislike") => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please log in to react to articles.");
+      return;
+    }
+    setReactingArticleId(articleId);
+    try {
+      const res = await api.post(
+        `/api/articles/${articleId}/react`,
+        { reaction },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const { action, reaction: newReaction } = res.data;
+      // Update local state
+      setUserReactions((prev) => {
+        const updated = { ...prev };
+        if (newReaction) {
+          updated[articleId] = newReaction;
+        } else {
+          delete updated[articleId];
+        }
+        return updated;
+      });
+      // Update article counts locally
+      setArticles((prev) =>
+        prev.map((a) => {
+          if (a.id !== articleId) return a;
+          let { likes_count, dislikes_count } = a;
+          if (action === "added") {
+            if (reaction === "like") likes_count++;
+            else dislikes_count++;
+          } else if (action === "removed") {
+            if (reaction === "like") likes_count = Math.max(0, likes_count - 1);
+            else dislikes_count = Math.max(0, dislikes_count - 1);
+          } else if (action === "changed") {
+            if (reaction === "like") {
+              likes_count++;
+              dislikes_count = Math.max(0, dislikes_count - 1);
+            } else {
+              dislikes_count++;
+              likes_count = Math.max(0, likes_count - 1);
+            }
+          }
+          return { ...a, likes_count, dislikes_count };
+        }),
+      );
+      // Also update selectedArticle if viewing detail
+      if (selectedArticle?.id === articleId) {
+        setSelectedArticle((prev) => {
+          if (!prev) return prev;
+          let { likes_count, dislikes_count } = prev;
+          if (action === "added") {
+            if (reaction === "like") likes_count++;
+            else dislikes_count++;
+          } else if (action === "removed") {
+            if (reaction === "like") likes_count = Math.max(0, likes_count - 1);
+            else dislikes_count = Math.max(0, dislikes_count - 1);
+          } else if (action === "changed") {
+            if (reaction === "like") {
+              likes_count++;
+              dislikes_count = Math.max(0, dislikes_count - 1);
+            } else {
+              dislikes_count++;
+              likes_count = Math.max(0, likes_count - 1);
+            }
+          }
+          return { ...prev, likes_count, dislikes_count };
+        });
+      }
+    } catch {
+      alert("Failed to react. Please try again.");
+    } finally {
+      setReactingArticleId(null);
+    }
+  };
+
   // ✅ FIXED: Filter events based on is_active status (like HomeEventsPage)
   const ongoingEvents = allEvents.filter((e) => e.is_active !== false);
   const completedEvents = allEvents.filter((e) => e.is_active === false);
@@ -283,6 +443,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
     { id: "questions", label: "Question Papers", icon: FileText },
     { id: "newspapers", label: "Newspapers", icon: Newspaper },
     { id: "news", label: "News", icon: Globe },
+    { id: "articles", label: "Articles", icon: BookOpen },
   ];
 
   const renderContent = () => {
@@ -334,21 +495,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
               <div className="bg-white/5 rounded-lg p-1 border border-white/10 flex space-x-2">
                 <button
                   onClick={() => setEventType("ongoing")}
-                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                    eventType === "ongoing"
-                      ? "bg-neon-blue text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${eventType === "ongoing"
+                    ? "bg-neon-blue text-white"
+                    : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   Ongoing Events ({ongoingEvents.length})
                 </button>
                 <button
                   onClick={() => setEventType("completed")}
-                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                    eventType === "completed"
-                      ? "bg-neon-blue text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${eventType === "completed"
+                    ? "bg-neon-blue text-white"
+                    : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   Completed Events ({completedEvents.length})
                 </button>
@@ -635,10 +794,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       key={category}
                       onClick={() => setSelectedCategory(category)}
                       className={`px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-center transition-colors text-xs sm:text-sm lg:text-base lg:flex-1 lg:min-w-[120px]
-                        ${
-                          isActive
-                            ? "bg-neon-blue text-white border border-neon-blue"
-                            : "bg-white/10 text-gray-300 border border-transparent hover:bg-neon-blue/50 hover:text-white"
+                        ${isActive
+                          ? "bg-neon-blue text-white border border-neon-blue"
+                          : "bg-white/10 text-gray-300 border border-transparent hover:bg-neon-blue/50 hover:text-white"
                         }`}
                     >
                       {category}
@@ -688,6 +846,106 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
               <p className="text-gray-400 text-center py-8">
                 No news found for this category.
               </p>
+            )}
+          </div>
+        );
+
+      case "articles":
+        if (loadingArticles)
+          return (
+            <p className="text-gray-400 text-center py-8">Loading articles...</p>
+          );
+        if (errorArticles)
+          return <p className="text-red-500 text-center py-8">{errorArticles}</p>;
+
+        return (
+          <div className="space-y-6">
+            {/* Top bar with Add Article button */}
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg sm:text-xl font-semibold text-white">
+                <span className="text-neon-blue">Community Articles</span>
+              </h2>
+              <button
+                onClick={() => setShowAddArticleModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300 hover:scale-105 text-sm font-medium border border-neon-blue/30"
+              >
+                <PenLine className="w-4 h-4" />
+                <span>Add Article</span>
+              </button>
+            </div>
+
+            {articles.length === 0 ? (
+              <p className="text-gray-400 text-center py-8">
+                No articles yet. Be the first to write one!
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {articles.map((article) => (
+                  <div
+                    key={article.id}
+                    className="dashboard-card glass-panel p-4 sm:p-6 rounded-xl border border-neon-blue/20 cursor-pointer hover:border-neon-blue/40 transition-all duration-300 hover:scale-[1.02] flex flex-col"
+                    onClick={() => {
+                      setSelectedArticle(article);
+                      setShowArticleDetail(true);
+                    }}
+                  >
+                    <div className="flex items-start mb-3">
+                      <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-neon-blue mr-3 flex-shrink-0 mt-1" />
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-semibold text-white leading-tight mb-1 line-clamp-2">
+                          {article.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-400">
+                          {article.author_name} •{" "}
+                          {new Date(article.created_at).toLocaleDateString("en-US", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed mb-4 flex-1">
+                      {article.content.length > 200
+                        ? article.content.substring(0, 200) + "..."
+                        : article.content}
+                    </p>
+                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArticleReaction(article.id, "like");
+                          }}
+                          disabled={reactingArticleId === article.id}
+                          className={`flex items-center space-x-1.5 text-sm transition-all duration-300 ${userReactions[article.id] === "like"
+                            ? "text-neon-blue"
+                            : "text-gray-400 hover:text-neon-blue"
+                            }`}
+                        >
+                          <ThumbsUp className="w-4 h-4" />
+                          <span>{article.likes_count}</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArticleReaction(article.id, "dislike");
+                          }}
+                          disabled={reactingArticleId === article.id}
+                          className={`flex items-center space-x-1.5 text-sm transition-all duration-300 ${userReactions[article.id] === "dislike"
+                            ? "text-red-400"
+                            : "text-gray-400 hover:text-red-400"
+                            }`}
+                        >
+                          <ThumbsDown className="w-4 h-4" />
+                          <span>{article.dislikes_count}</span>
+                        </button>
+                      </div>
+                      <span className="text-neon-blue text-xs font-medium">Read More →</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         );
@@ -843,11 +1101,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
                       setActiveSection(section.id);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center space-x-3 p-3 transition-all duration-300 border-b border-white/5 last:border-b-0 ${
-                      isActive
-                        ? "bg-neon-blue/20 text-neon-blue"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
-                    }`}
+                    className={`w-full flex items-center space-x-3 p-3 transition-all duration-300 border-b border-white/5 last:border-b-0 ${isActive
+                      ? "bg-neon-blue/20 text-neon-blue"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{section.label}</span>
@@ -867,11 +1124,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all duration-300 text-sm md:text-base ${
-                  isActive
-                    ? "bg-neon-blue/20 text-neon-blue border border-neon-blue/30"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                }`}
+                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all duration-300 text-sm md:text-base ${isActive
+                  ? "bg-neon-blue/20 text-neon-blue border border-neon-blue/30"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
               >
                 <Icon className="w-5 h-5" />
                 <span className="font-medium">{section.label}</span>
@@ -887,6 +1143,154 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
       </div>
 
       <Footer />
+
+      {/* Add Article Modal */}
+      {showAddArticleModal && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            onClick={() => setShowAddArticleModal(false)}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-900 border border-white/20 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-white/10">
+                <h3 className="text-xl font-bold text-white">Write an Article</h3>
+                <button
+                  onClick={() => setShowAddArticleModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Article Title
+                  </label>
+                  <input
+                    type="text"
+                    value={articleTitle}
+                    onChange={(e) => setArticleTitle(e.target.value)}
+                    placeholder="Enter article title..."
+                    maxLength={200}
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Article Content
+                  </label>
+                  <textarea
+                    value={articleContent}
+                    onChange={(e) => setArticleContent(e.target.value)}
+                    placeholder="Write your article here..."
+                    rows={10}
+                    maxLength={10000}
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50 resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {articleContent.length}/10000 characters
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end space-x-3 p-6 border-t border-white/10">
+                <button
+                  onClick={() => setShowAddArticleModal(false)}
+                  className="px-5 py-2.5 text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleArticleSubmit}
+                  disabled={submittingArticle || !articleTitle.trim() || !articleContent.trim()}
+                  className="px-5 py-2.5 bg-neon-blue hover:bg-neon-blue/80 text-white rounded-lg text-sm font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {submittingArticle ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <span>Submit Article</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Article Detail Modal */}
+      {showArticleDetail && selectedArticle && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            onClick={() => {
+              setShowArticleDetail(false);
+              setSelectedArticle(null);
+            }}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-900 border border-white/20 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-white/10">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-xl font-bold text-white leading-tight">
+                    {selectedArticle.title}
+                  </h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    By {selectedArticle.author_name} •{" "}
+                    {new Date(selectedArticle.created_at).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowArticleDetail(false);
+                    setSelectedArticle(null);
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors ml-4 flex-shrink-0"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6">
+                <div className="text-gray-300 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
+                  {selectedArticle.content}
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-6 border-t border-white/10">
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => handleArticleReaction(selectedArticle.id, "like")}
+                    disabled={reactingArticleId === selectedArticle.id}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${userReactions[selectedArticle.id] === "like"
+                      ? "bg-neon-blue/20 text-neon-blue border border-neon-blue/30"
+                      : "bg-white/5 text-gray-400 hover:text-neon-blue hover:bg-neon-blue/10 border border-white/10"
+                      }`}
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                    <span>{selectedArticle.likes_count}</span>
+                  </button>
+                  <button
+                    onClick={() => handleArticleReaction(selectedArticle.id, "dislike")}
+                    disabled={reactingArticleId === selectedArticle.id}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${userReactions[selectedArticle.id] === "dislike"
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                      : "bg-white/5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-white/10"
+                      }`}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    <span>{selectedArticle.dislikes_count}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
