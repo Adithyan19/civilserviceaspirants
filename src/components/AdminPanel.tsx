@@ -57,6 +57,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   const [newsCategory, setNewsCategory] = React.useState("Global");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // TKMCE News PDF state
+  const [tkmceTitle, setTkmceTitle] = React.useState("");
+  const [tkmceDate, setTkmceDate] = React.useState("");
+  const [tkmceFile, setTkmceFile] = React.useState<File | null>(null);
+
   // Event state - Creating an event
   const [eventForm, setEventForm] = React.useState({
     coverPhoto: "",
@@ -281,6 +286,43 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
       showError(errorMsg);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleTkmceNewsSave = async () => {
+    if (!tkmceTitle || !tkmceDate || !tkmceFile) {
+      showError("Please fill all fields and upload a PDF.");
+      return;
+    }
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("title", tkmceTitle);
+    formData.append("date", tkmceDate);
+    formData.append("pdf", tkmceFile);
+    formData.append("type_id", "4");
+    try {
+      await api.post("/api/admin/tkmcenews", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      showSuccess("TKMCE News PDF saved successfully!");
+      setTkmceTitle("");
+      setTkmceDate("");
+      setTkmceFile(null);
+    } catch (error: unknown) {
+      let errorMsg = "Error uploading TKMCE news: ";
+      if (axios.isAxiosError(error) && error.response) {
+        errorMsg +=
+          error.response.data?.error ||
+          error.response.data?.message ||
+          `Request failed with status code ${error.response.status}`;
+      } else if (error instanceof Error) {
+        errorMsg += error.message;
+      } else {
+        errorMsg += String(error);
+      }
+      showError(errorMsg);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -623,18 +665,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              News Link
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/news/article"
-              value={newsUrl}
-              onChange={(e) => setNewsUrl(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
               Category
             </label>
             <select
@@ -650,35 +680,125 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
               <option value="UPSC">UPSC</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Headline
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter news title"
-              value={newsTitle}
-              onChange={(e) => setNewsTitle(e.target.value)}
-            />
-          </div>
-          <button
-            onClick={handleNewsSubmit}
-            disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2 disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Publishing...</span>
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                <span>Publish News</span>
-              </>
-            )}
-          </button>
+
+          {newsCategory === "TKMCE" ? (
+            /* ---- TKMCE PDF Upload Form ---- */
+            <>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={tkmceTitle}
+                    onChange={(e) => setTkmceTitle(e.target.value)}
+                    placeholder="e.g., TKMCE Newsletter - March 2026"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={tkmceDate}
+                    onChange={(e) => setTkmceDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload PDF
+                </label>
+                <label htmlFor="tkmce-news-upload" className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer block hover:border-blue-400 transition-colors">
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <span className="mt-4 block text-sm font-medium text-gray-900">
+                    Click to upload PDF
+                  </span>
+                  <input
+                    id="tkmce-news-upload"
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setTkmceFile(file);
+                    }}
+                  />
+                  {tkmceFile && (
+                    <span className="block text-xs mt-2 text-green-600 font-medium">
+                      ✓ Selected: {tkmceFile.name}
+                    </span>
+                  )}
+                </label>
+              </div>
+              <button
+                disabled={isUploading}
+                onClick={handleTkmceNewsSave}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Save TKMCE News</span>
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            /* ---- Regular News Form (headline + link) ---- */
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  News Link
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://example.com/news/article"
+                  value={newsUrl}
+                  onChange={(e) => setNewsUrl(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Headline
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter news title"
+                  value={newsTitle}
+                  onChange={(e) => setNewsTitle(e.target.value)}
+                />
+              </div>
+              <button
+                onClick={handleNewsSubmit}
+                disabled={isSubmitting}
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2 disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Publishing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Publish News</span>
+                  </>
+                )}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

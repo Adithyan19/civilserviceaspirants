@@ -91,7 +91,7 @@ const AppContent: React.FC = () => {
     isOpen: false,
     url: "",
     title: "",
-    type: "newspaper" as "newspaper" | "question",
+    type: "newspaper" as "newspaper" | "question" | "tkmce_news",
   });
 
   const isAdmin = user?.role === "admin";
@@ -129,7 +129,7 @@ const AppContent: React.FC = () => {
   const handleOpenPDF = (
     url: string,
     title: string,
-    type: "newspaper" | "question",
+    type: "newspaper" | "question" | "tkmce_news",
   ) => {
     setPdfViewer({ isOpen: true, url, title, type });
   };

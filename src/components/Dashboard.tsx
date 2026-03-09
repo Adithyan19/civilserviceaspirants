@@ -33,7 +33,7 @@ interface DashboardProps {
   onOpenPDF: (
     url: string,
     title: string,
-    type: "question" | "newspaper",
+    type: "question" | "newspaper" | "tkmce_news",
   ) => void;
   onLogout?: () => void;
 }
@@ -59,6 +59,13 @@ interface NewsItem {
   date: string;
   title: string;
   posted_at: string;
+  url: string;
+}
+
+interface TkmceNewsItem {
+  id: string;
+  title: string;
+  date: string;
   url: string;
 }
 
@@ -111,6 +118,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
   const [allEvents, setAllEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [errorEvents, setErrorEvents] = useState<string | null>(null);
+
+  // TKMCE News PDF state
+  const [tkmceNews, setTkmceNews] = useState<TkmceNewsItem[]>([]);
+  const [loadingTkmce, setLoadingTkmce] = useState(false);
+  const [errorTkmce, setErrorTkmce] = useState<string | null>(null);
 
   // Articles state
   const [articles, setArticles] = useState<ArticleItem[]>([]);
@@ -282,6 +294,24 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
       setSelectedCategory(foundCategory || "TKMCE");
     }
   }, [news, activeSection]);
+
+  // Fetch TKMCE news PDFs when TKMCE category selected
+  useEffect(() => {
+    if (activeSection === "news" && selectedCategory === "TKMCE") {
+      (async () => {
+        setLoadingTkmce(true);
+        setErrorTkmce(null);
+        try {
+          const res = await api.get<TkmceNewsItem[]>("/api/gettkmcenews");
+          setTkmceNews(res.data || []);
+        } catch {
+          setErrorTkmce("Failed to fetch TKMCE news");
+        } finally {
+          setLoadingTkmce(false);
+        }
+      })();
+    }
+  }, [activeSection, selectedCategory]);
 
   // Fetch articles
   useEffect(() => {
@@ -813,7 +843,65 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onOpenPDF, onLogout }) => {
               </h2>
             </div>
 
-            {filteredNews.length > 0 ? (
+            {selectedCategory === "TKMCE" ? (
+              /* ---- TKMCE PDF Cards ---- */
+              loadingTkmce ? (
+                <p className="text-gray-400 text-center py-8">Loading TKMCE news...</p>
+              ) : errorTkmce ? (
+                <p className="text-red-500 text-center py-8">{errorTkmce}</p>
+              ) : tkmceNews.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {tkmceNews.map((item) => (
+                    <div
+                      key={item.id}
+                      className="dashboard-card glass-panel p-4 sm:p-6 rounded-xl border border-neon-blue/20"
+                    >
+                      <div className="flex items-start mb-4">
+                        <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-neon-blue mr-3 flex-shrink-0 mt-1" />
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base sm:text-lg font-semibold text-white leading-tight mb-1">
+                            {item.title}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-gray-400">
+                            {item.date
+                              ? new Date(item.date).toLocaleDateString("en-US", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })
+                              : "Unknown"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-2 sm:space-y-3">
+                        <button
+                          onClick={() =>
+                            onOpenPDF(item.url, item.title, "tkmce_news")
+                          }
+                          className="flex items-center justify-center space-x-2 py-2.5 px-4 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-lg transition-all duration-300 hover:scale-105 text-sm"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>View</span>
+                        </button>
+                        <a
+                          href={item.url}
+                          download
+                          className="flex items-center justify-center space-x-2 py-2.5 px-4 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg transition-all duration-300 hover:scale-105 text-sm"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Download</span>
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-8">
+                  No TKMCE news PDFs found.
+                </p>
+              )
+            ) : filteredNews.length > 0 ? (
+              /* ---- Regular News Cards (headline + link) ---- */
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredNews.map((newsItem) => (
                   <div

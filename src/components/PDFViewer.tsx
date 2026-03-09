@@ -7,7 +7,7 @@ interface PDFViewerProps {
   onClose: () => void;
   pdfUrl: string;
   title: string;
-  type: "newspaper" | "question";
+  type: "newspaper" | "question" | "tkmce_news";
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({
